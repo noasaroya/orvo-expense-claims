@@ -251,6 +251,31 @@ textarea:focus{outline:none;border-color:var(--primary);box-shadow:var(--shadow-
 .rc.paper{--rot:0deg;--fold:50%;position:relative;width:230px!important;max-width:100%;border:0;border-radius:1px;padding:22px 16px 26px;font:11.5px/1.6 "Courier New",Courier,monospace;color:#33312e;letter-spacing:-.1px;transform:rotate(var(--rot));
  background:linear-gradient(180deg,rgba(0,0,0,0) calc(var(--fold) - 1px),rgba(0,0,0,.05) var(--fold),rgba(255,255,255,.5) calc(var(--fold) + 1px),rgba(0,0,0,0) calc(var(--fold) + 3px)),linear-gradient(100deg,#f6f3ec 0%,#fdfcf8 35%,#f9f6ef 70%,#efebe2 100%);
  box-shadow:none!important}
+.pdfdoc{width:100%;max-width:300px;border-radius:6px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.12),0 6px 16px -6px rgba(0,0,0,.25);background:#fff}
+.pdfbar{display:flex;align-items:center;gap:8px;background:#3b3f46;color:#e9eaec;padding:6px 10px;font:500 10.5px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif}
+.pdftag{background:#e5484d;color:#fff;border-radius:3px;padding:2px 4px;font-weight:700;font-size:9px;letter-spacing:.4px}
+.pdfname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdfpg{color:#b4b8bf}
+.rc.pdf{width:100%!important;border:0;border-radius:0;box-shadow:none!important;background:#fff;padding:18px 16px 14px;font:9.5px/1.5 Helvetica,Arial,sans-serif;color:#22252a}
+.rc.pdf .ph{display:flex;justify-content:space-between;gap:10px;padding-bottom:10px;border-bottom:2px solid #22252a}
+.rc.pdf .ph div{display:flex;flex-direction:column}
+.rc.pdf .ph span{color:#6a6f78;font-size:8.5px}
+.rc.pdf .pv{font-size:13px;letter-spacing:.2px}
+.rc.pdf .pr{text-align:right;align-items:flex-end}
+.rc.pdf .pr b{font-size:10px}
+.rc.pdf .pbill{display:flex;flex-direction:column;margin:10px 0}
+.rc.pdf .pbill span{color:#6a6f78;font-size:8.5px;text-transform:uppercase;letter-spacing:.5px}
+.rc.pdf .pt{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #e6e8eb}
+.rc.pdf .pth{color:#6a6f78;font-size:8.5px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #22252a}
+.rc.pdf .psum{margin:6px 0 0 40%}
+.rc.pdf .psum .pt{border-bottom:0;padding:3px 0}
+.rc.pdf .ptot{font-weight:700;font-size:11.5px;border-top:1px solid #22252a!important;margin-top:3px;padding-top:6px!important}
+.rc.pdf .ppay{margin-top:12px;background:#f3f5f7;border-radius:3px;padding:6px 8px;color:#3c4048}
+.rc.pdf .pfoot{margin-top:14px;color:#9a9fa8;font-size:7.5px;text-align:center}
+.rcwrap:has(.pdfdoc){background:#e9eaee;padding:40px 18px 14px}.rcwrap .rc.pdf .pt{padding:3.5px 0}.rcwrap .rc.pdf .ph{padding-bottom:7px}
+.rcwrap .rc.pdf .pfoot,.rcwrap .rc.pdf .ppay{display:none}.rcwrap .rc.pdf .pbill{margin:7px 0}.rcwrap .rc.pdf .ppay{margin-top:8px}.rcwrap .rc.pdf{padding:14px 14px 12px}
+.lightbox .pdfdoc{zoom:1.8;cursor:default}
+.lightbox .rc.pdf{padding:18px 16px 14px;font-size:9.5px}.lightbox .rc.pdf h5{font-size:13px}
 .rcshadow{filter:drop-shadow(0 1px 1px rgba(0,0,0,.14)) drop-shadow(0 8px 10px rgba(40,30,15,.28));display:grid;place-items:center;max-width:100%}
 .rc.paper::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .42 0 0 0 0 .38 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
 .rc.paper h5{font:700 14px "Courier New",Courier,monospace;letter-spacing:.5px}
@@ -434,6 +459,9 @@ const cnt=s=>by(s).length+(s=='auto'?HIDDEN:0);
 const flagged=()=>by('auto').filter(x=>x.flag&&!x.res);
 const RADDR=['12 Herzl St, Tel Aviv','48 Ibn Gabirol St, Tel Aviv','7 HaNamal St, Haifa','101 Derech Begin, Tel Aviv','23 Rothschild Blvd, Tel Aviv','5 HaAtzmaut Rd, Haifa','66 Dizengoff St, Tel Aviv'];
 const receipt=x=>{if(!x.rc)return `<div class="rc none">${x.rcNote}</div>`;const r=x.rc,k=x.id||0,tot=parseFloat(String(r.t).replace(/,/g,''))||0,vat=(tot-tot/1.17).toFixed(2),rot=(((k*37)%5)-2)*.45;
+ const isPdf=!r.hand&&(x.cat=='Software'||(x.amt>=100&&!['Meals','Transportation','Parking'].includes(x.cat)));
+ if(isPdf){const sub=(tot-parseFloat(vat)).toFixed(2),fn=String(r.v).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-invoice-'+String(1000+(k*613)%8999)+'.pdf';
+  return `<div class="pdfdoc"><div class="pdfbar"><span class="pdftag">PDF</span><span class="pdfname">${fn}</span><span class="pdfpg">1 / 1</span></div><div class="rc pdf"><div class="ph"><div><b class="pv">${r.v}</b><span>${RADDR[k%RADDR.length]}</span><span>VAT ID 5140${String(10000+(k*7919)%89999)}</span></div><div class="pr"><b>Tax invoice / Receipt</b><span>No. ${String(1000+(k*613)%8999)}</span><span>${r.d.split(' · ')[0]}</span></div></div><div class="pbill"><span>Billed to</span><b>${x.n}</b></div><div class="pt pth"><span>Description</span><span>Amount</span></div>${r.l.map(l=>`<div class="pt"><span>${l[0]}</span><span>${l[1]}</span></div>`).join('')}<div class="psum"><div class="pt"><span>Subtotal</span><span>${sub}</span></div><div class="pt"><span>VAT 17%</span><span>${vat}</span></div><div class="pt ptot"><span>Total paid</span><span>$${r.t}</span></div></div><div class="ppay">Paid by Visa ending ${String(1000+(k*2731)%8999)} · ${r.d.split(' · ')[0]}</div><div class="pfoot">This document was generated electronically and is valid without a signature.</div></div></div>`}
  if(r.hand)return `<div class="rcshadow"><div class="rc paper hand" style="--rot:${rot-.8}deg"><h5>${r.v}</h5><div class="d">${r.d}</div>${r.l.map(l=>`<div class="r"><span>${l[0]}</span><span>${l[1]}</span></div>`).join('')}<div class="r tot"><span>Total</span><span>$${r.t}</span></div><div class="sig">paid cash</div></div></div>`;
  return `<div class="rcshadow"><div class="rc paper" style="--rot:${rot}deg;--fold:${38+(k*13)%30}%"><h5>${r.v}</h5><div class="d">${RADDR[k%RADDR.length]}<br>Tel 03-555-01${String(10+(k*7)%89)} · VAT ID 5140${String(10000+(k*7919)%89999)}</div><div class="meta"><span>${r.d}</span><span>#${String(1000+(k*613)%8999)}</span></div><div class="dash"></div>${r.l.map(l=>`<div class="r"><span>${l[0]}</span><span>${l[1]}</span></div>`).join('')}<div class="dash"></div><div class="r sm"><span>Incl. VAT 17%</span><span>${vat}</span></div><div class="r tot"><span>TOTAL</span><span>$${r.t}</span></div><div class="r sm"><span>VISA **** ${String(1000+(k*2731)%8999)}</span><span>APPROVED</span></div><div class="thx">THANK YOU</div><div class="bar"></div></div></div>`};
 
