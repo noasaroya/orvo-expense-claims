@@ -410,7 +410,7 @@ const cnt=s=>by(s).length+(s=='auto'?HIDDEN:0);
 const flagged=()=>by('auto').filter(x=>x.flag&&!x.res);
 const receipt=x=>x.rc?`<div class="rc ${x.rc.hand?'hand':''}"><h5>${x.rc.v}</h5><div class="d">${x.rc.d}</div>${x.rc.l.map(l=>`<div class="r"><span>${l[0]}</span><span>${l[1]}</span></div>`).join('')}<div class="r tot"><span>TOTAL</span><span>$${x.rc.t}</span></div></div>`:`<div class="rc none">${x.rcNote}</div>`;
 
-function toast(msg,undo){undoFn=undo;$('#toast').innerHTML=`<div class="toast" role="status"><span>${msg}</span>${undo?'<button onclick="doUndo()">Undo</button>':''}</div>`;clearTimeout(toastT);toastT=setTimeout(()=>{$('#toast').innerHTML='';undoFn=null},7000)}
+function toast(msg,undo){if(undo){undoFn=null;clearTimeout(toastT);$('#toast').innerHTML='';return}undoFn=undo;$('#toast').innerHTML=`<div class="toast" role="status"><span>${msg}</span>${undo?'<button onclick="doUndo()">Undo</button>':''}</div>`;clearTimeout(toastT);toastT=setTimeout(()=>{$('#toast').innerHTML='';undoFn=null},7000)}
 function doUndo(){if(undoFn)undoFn();undoFn=null;$('#toast').innerHTML='';draw()}
 function snap(x){const s=JSON.stringify(x);return()=>{for(const k in x)delete x[k];Object.assign(x,JSON.parse(s))}}
 function openModal(id){modal=id;mode='view';showRc=false;rev=null;fresh=true;mtab='agent';zoom=false;evOpen=false;instOpen=false;instText=DRAFT[id]||'';draw()}
@@ -422,7 +422,7 @@ function decide(id,a){const x=I.find(v=>v.id==id);
  toast(`${a=='Approve'?'Approved':'Rejected'} ${first(x)}'s request · ${money(x.amt)}${fin?'. Sent to Finance.':''}${note?` Your note was sent to ${first(x)}.`:''}`,undo);draw()}
 let noFlag=false;const rcFail={1:true};
 function startConfirm(id){fresh=modal!=id;modal=id;mode='confirm';noFlag=false;draw()}
-function looksFine(id){const x=I.find(v=>v.id==id),undo=snap(x);const nf=mode=='confirm'&&noFlag;x.res='ok';modal=null;mode='view';noFlag=false;toast(`Confirmed ${first(x)}'s approval.${nf?' Rule sent to Finance for approval.':''}`,undo);draw()}
+function looksFine(id){const x=I.find(v=>v.id==id),undo=snap(x);const nf=mode=='confirm'&&noFlag;x.res='ok';modal=null;mode='view';noFlag=false;nf?toast('Rule sent to Finance for approval.'):toast('',undo);draw()}
 function startReverse(id){fresh=modal!=id;modal=id;mode='reverse';rev=null;draw()}
 function confirmReverse(){const x=I.find(v=>v.id==modal);if(!rev)return;const undo=snap(x);if(x.st=='hist'||x.st=='done'){x.prevHs=hstat(x);x.prevReason=hreason(x);if(x.st=='done'){x.st='hist';x.date='Nov 12';x.month='2026-11'}x.hs='reversed';x.reason=rev}else{x.res='rev';x.revWhy=rev}modal=null;mode='view';
  toast(`Approval reversed. ${first(x)} was notified.`,undo);draw()}
