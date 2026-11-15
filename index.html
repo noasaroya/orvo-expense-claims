@@ -139,6 +139,9 @@ textarea.bad{border-color:var(--destructive)!important;box-shadow:0 0 0 3px var(
 .mopt:hover{background:var(--muted)}
 .mopt .cw{color:var(--muted-fg);display:grid;place-items:center;flex:none;margin-right:-2px}.mopt .cw svg{width:18px;height:18px}
 .mopt input{width:16px;height:16px;margin:0;accent-color:var(--primary);cursor:pointer}
+.mrow{width:100%;border:0;background:none;font:inherit;font-size:14px;color:var(--foreground);justify-content:space-between;text-align:left}
+.mrow.on{color:var(--primary-ink);font-weight:600}
+.mrow svg{width:16px;height:16px}
 .mfoot{border-top:1px solid var(--border);margin-top:6px;padding:8px 10px 4px;display:flex;justify-content:flex-end}
 .mfoot .lnk:disabled{opacity:.4;cursor:default}
 .filters select:focus-visible,.chip:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
@@ -417,7 +420,8 @@ const PER=11;let pg=1;
  ['MP','Meals','Lunch · Giraffe',26,'Oct 29','auto'],['DM','Travel','Hotel · Dan Panorama',720,'Oct 28','auto'],['OG','Transportation','Taxi · Gett',29,'Oct 27','auto'],['NF','Training','Workshop · Design Week',1100,'Oct 23','approved','Over $1,000. Sent to Finance.'],['LA','Parking','Parking · Pango',12,'Oct 22','auto'],['IS','Meals','Client coffee · Cafelix',16,'Oct 21','auto'],['TL','Office supplies','Notebooks · Office Depot',31,'Oct 20','auto'],['SK','Meals','Team dinner · Ouzeria',240,'Oct 15','approved','$48 per person. Receipt added later.'],['YC','Transportation','Taxi · Gett',38,'Oct 14','rejected','Missing receipt.'],['MP','Software','Plugin licence · Figma',45,'Oct 12','auto'],['DM','Transportation','Train · Israel Railways',21.5,'Oct 8','auto'],['OG','Meals','Lunch · Miznon',19,'Oct 6','auto']]
  .forEach((r,k)=>I.push({id:200+k,st:'hist',n:TEAM[r[0]],i:r[0],cat:r[1],what:r[2],amt:r[3],date:r[4],month:r[4].startsWith('Oct')?'2026-10':'2026-11',hs:r[5],reason:r[6],
   steps:r[5]=='approved'||r[5]=='rejected'?[PASS[0],PASS[1],S('stop','Policy check',r[6]),S('skip','Duplicate check')]:PASS,rc:{v:r[2].split(' · ')[1].toUpperCase(),d:r[4]+', 2026',l:[[r[2].split(' · ')[0],r[3].toFixed(2)]],t:r[3].toFixed(2)}}));
-let hMonth='2026-11',hStat='all',hp=1,hCats=[],hCatOpen=false;
+let hMonth='2026-11',hStat='all',hp=1,hCats=[],hCatOpen=false,hMonOpen=false;
+const MONTHS=[['2026-11','November 2026',1],['2026-10','October 2026',1],['2026-09','September 2026'],['2026-08','August 2026'],['2026-07','July 2026'],['2026-06','June 2026'],['2026-05','May 2026'],['2026-04','April 2026']];
 function togCat(c){hCats=hCats.includes(c)?hCats.filter(v=>v!=c):[...hCats,c];hp=1;draw()}
 let mtab='agent',zoom=false,instOpen=false,instText='';const instSent={};
 const DRAFT={11:'Don\'t flag approvals under $1,000 when every check passed.',12:'Don\'t flag handwritten taxi receipts under $50 when the amount is readable.',1:'Approve client meals that are up to $20 per person over the meal limit.',2:'Approve taxi rides under $40 without a receipt when the employee confirms the amount.',3:'Send conference tickets under $1,500 straight to Finance, without my approval.',4:'When two people submit the same receipt, ask them who paid before sending it to me.',5:'Approve equipment requests that are up to $5 over the employee\'s yearly budget.',6:'Don\'t treat two taxi rides on the same day as duplicates when the receipt times are different.',7:'When the attendee count doesn\'t match the receipt, ask the employee before sending it to me.'};
@@ -530,10 +534,10 @@ function histTab(){
  const all=I.filter(x=>x.st=='done'||x.st=='hist').sort((a,b)=>(a.st=='done'?0:1)-(b.st=='done'?0:1));
  const L=all.filter(x=>(x.st=='done'?'2026-11':x.month)==hMonth&&(hStat=='all'||hstat(x)==hStat)&&(!hCats.length||hCats.includes(x.cat)));
  const CATS=[...new Set(all.map(x=>x.cat))].sort();const catLabel=!hCats.length?'All categories':hCats.length==1?hCats[0]:hCats.length+' categories';
- const catSel=`<div class="msel"><button class="mbtn ${hCats.length?'has':''}" aria-haspopup="true" aria-expanded="${hCatOpen}" onclick="hCatOpen=!hCatOpen;draw()">${catLabel}</button>${hCatOpen?`<div class="mpop" role="group" aria-label="Category">${CATS.map(c=>`<label class="mopt"><input type="checkbox" ${hCats.includes(c)?'checked':''} onchange="togCat('${c}')"><span class="cw">${ic(CAT[c]||'receipt')}</span>${c}</label>`).join('')}<div class="mfoot"><button class="lnk" ${hCats.length?'':'disabled'} onclick="hCats=[];hp=1;draw()">Clear</button></div></div>`:''}</div>`;
+ const catSel=`<div class="msel"><button class="mbtn ${hCats.length?'has':''}" aria-haspopup="true" aria-expanded="${hCatOpen}" onclick="hCatOpen=!hCatOpen;hMonOpen=false;draw()">${catLabel}</button>${hCatOpen?`<div class="mpop" role="group" aria-label="Category">${CATS.map(c=>`<label class="mopt"><input type="checkbox" ${hCats.includes(c)?'checked':''} onchange="togCat('${c}')"><span class="cw">${ic(CAT[c]||'receipt')}</span>${c}</label>`).join('')}<div class="mfoot"><button class="lnk" ${hCats.length?'':'disabled'} onclick="hCats=[];hp=1;draw()">Clear</button></div></div>`:''}</div>`;
  const pages=Math.max(1,Math.ceil(L.length/PER));hp=Math.min(Math.max(hp,1),pages);const from=(hp-1)*PER,to=Math.min(from+PER,L.length);
  const chip=(k,t)=>`<button class="chip ${hStat==k?'on':''}" aria-pressed="${hStat==k}" onclick="hStat='${k}';hp=1;draw()">${t}</button>`;
- return `<div class="filters"><select aria-label="Month" onchange="hMonth=this.value;hp=1;draw()"><option value="2026-11" ${hMonth=='2026-11'?'selected':''}>November 2026</option><option value="2026-10" ${hMonth=='2026-10'?'selected':''}>October 2026</option></select>${catSel}
+ return `<div class="filters"><div class="msel"><button class="mbtn" aria-label="Month" aria-haspopup="listbox" aria-expanded="${hMonOpen}" onclick="hMonOpen=!hMonOpen;hCatOpen=false;draw()">${MONTHS.find(m=>m[0]==hMonth)[1]}</button>${hMonOpen?`<div class="mpop" role="listbox" aria-label="Month">${MONTHS.map(m=>`<button class="mopt mrow ${m[0]==hMonth?'on':''}" role="option" aria-selected="${m[0]==hMonth}" onclick="${m[2]?`hMonth='${m[0]}';hp=1;`:''}hMonOpen=false;draw()">${m[1]}${m[0]==hMonth?ic('check'):''}</button>`).join('')}</div>`:''}</div>${catSel}
  <div class="chips">${chip('all','All')}${chip('approved','Approved by you')}${chip('rejected','Rejected by you')}${chip('auto','Approved by agent')}${chip('reversed','Reversed')}</div></div>
  <div class="card">${L.length?`<table class="tbl"><thead><tr><th>Employee</th><th>Category</th><th>Amount</th><th>Status</th><th>Reason</th><th class="th-act">Action</th></tr></thead><tbody>${L.slice(from,to).map(x=>{const h=HS[hstat(x)];
   return `<tr class="row" onclick="openModal(${x.id})"><td><div class="who">${av(x)}<div>${x.n}<small>${x.st=='done'?'Today <span class="bar">|</span> Nov 12, 26':x.date+', 26'}</small></div></div></td><td>${catIcon(x)}</td><td class="amt">${money(x.amt)}</td><td><span class="pill ${h[0]}">${h[2]?ic('check'):''}${h[1]}</span>${h[2]?`<div class="kind took">${wasPaid(x)?'Paid '+LASTPAY:'Pays '+NEXTPAY}</div>`:''}</td><td class="reason">${hreason(x)}</td><td><div class="acts"><button class="lnk" onclick="event.stopPropagation();${histAct(x)[1]}">${histAct(x)[0]}</button></div></td></tr>`}).join('')}</tbody></table>
@@ -587,8 +591,8 @@ function draw(){const F=flagged().length;
  const keep=document.activeElement&&document.activeElement.id=='note';
  $('#modal').innerHTML=modal==null?'':modalHtml();if(fresh&&$('.dialog'))$('.dialog').classList.add('in');fresh=false;document.body.style.overflow=modal==null?'':'hidden';
  if(keep&&$('#note')){const n=$('#note');n.focus();n.selectionStart=n.value.length}}
-document.addEventListener('click',e=>{if(hCatOpen&&!e.target.closest('.msel')){hCatOpen=false;draw()}});
-document.addEventListener('keydown',e=>{if(e.key=='Escape'&&hCatOpen&&modal==null){hCatOpen=false;draw();return}if(e.key!='Escape'||modal==null)return;if(zoom){zoom=false;draw()}else closeModal()});
+document.addEventListener('click',e=>{if((hCatOpen||hMonOpen)&&!e.target.closest('.msel')){hCatOpen=hMonOpen=false;draw()}});
+document.addEventListener('keydown',e=>{if(e.key=='Escape'&&(hCatOpen||hMonOpen)&&modal==null){hCatOpen=hMonOpen=false;draw();return}if(e.key!='Escape'||modal==null)return;if(zoom){zoom=false;draw()}else closeModal()});
 draw();
 </script>
 </body>
