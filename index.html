@@ -115,7 +115,7 @@ h1{font-size:26px;line-height:36px;font-weight:700;letter-spacing:-.02em;margin:
 .lnk:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
 .note-err{background:var(--danger-light);color:#a11717;border-radius:var(--r-lg);padding:12px;display:flex;gap:8px;margin-bottom:10px;text-align:left}
 .note-err b{display:block;font-weight:600}
-textarea.bad{border-color:var(--destructive)!important;box-shadow:0 0 0 3px var(--danger-light)!important}.ferr{font-size:13px;color:#a11717;margin:6px 0 0}
+textarea.bad{border-color:var(--destructive)!important;box-shadow:0 0 0 3px var(--danger-light)!important}.ferr{font-size:13px;color:#a11717;margin:6px 0 0;display:flex;align-items:center;gap:6px}.ferr svg{width:15px;height:15px;flex:none;color:var(--destructive)}
 .rcerr{min-height:240px;width:100%;border-radius:var(--r-lg);background:var(--danger-light);color:#a11717;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px;text-align:center;font-size:14px}.rcerr b{font-weight:600}.rcerr span{color:var(--muted-fg)}.rcerr .btn{margin-top:10px;background:#fff}
 .banner{display:flex;gap:16px;align-items:flex-start;background:#f6f3ff;border-radius:12px;padding:22px 24px;margin-bottom:22px}
 .banner .bot{width:32px;height:32px;margin-top:2px}
@@ -143,7 +143,8 @@ textarea.bad{border-color:var(--destructive)!important;box-shadow:0 0 0 3px var(
 .pb:disabled{opacity:.4;cursor:default}
 .pb:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
 .foot{padding:14px 24px;color:var(--muted-fg);border-top:1px solid var(--border)}
-.empty{padding:64px 24px;text-align:center}
+.empty{padding:56px 24px 64px;text-align:center}
+.empty .eart{width:160px;height:124px;display:block;margin:0 auto 18px}
 .empty .ewell{width:72px;height:72px;border-radius:20px;background:var(--success-light);color:var(--success-ink);display:grid;place-items:center;margin:0 auto 16px}
 .empty .ewell svg{width:32px;height:32px}
 .empty h2{font-size:18px;line-height:26px;font-weight:600;margin:0 0 4px}
@@ -430,7 +431,7 @@ function actions(x){return (x.err?`<div class="note-err" role="alert">${ic('aler
 
 function needTab(){const L=by('need').sort((a,b)=>b.days-a.days);let h='<div class="card">';
  if(L.length)h+=`<table class="tbl"><thead><tr><th>Employee</th><th>Category</th><th>Amount</th><th>Reason</th><th>Agent recommends</th><th class="th-act">Action</th></tr></thead><tbody>${L.map(x=>`<tr class="row" onclick="openModal(${x.id})"><td>${personAgo(x)}</td><td>${catIcon(x)}</td><td class="amt">${money(x.amt)}</td><td><span class="pill ${x.tc}">${x.tag}</span><div class="why">${x.why}</div></td><td class="rec ${x.rec?'':'none'}">${x.rec||'No recommendation'}</td><td>${actions(x)}</td></tr>`).join('')}</tbody></table>`;
- else h+=`<div class="empty"><div class="ewell">${ic('okc')}</div><h2>You're all caught up</h2><p>Nothing needs your approval right now.${flagged().length?` The agent flagged ${flagged().length} of its own approvals for a quick look.`:''}</p><button class="btn" onclick="tab='auto';draw()">Open Agent Review</button></div>`;
+ else h+=`<div class="empty"><svg class="eart" viewBox="0 0 160 124" aria-hidden="true"><path d="M46 12a6 6 0 0 1 6-6h56a6 6 0 0 1 6 6v84l-8.5 8-8.5-8-8.5 8-8.5-8-8.5 8-8.5-8-8.5 8-8.5-8z" fill="#efeaff" stroke="#7849ff" stroke-width="2.5" stroke-linejoin="round"/><path d="M60 28h40M60 42h26M60 56h34" stroke="#b9a4ff" stroke-width="4" stroke-linecap="round"/><path d="M60 74h14" stroke="#7849ff" stroke-width="4" stroke-linecap="round"/><circle cx="112" cy="84" r="20" fill="#dff5e6" stroke="#fff" stroke-width="4"/><path d="M103 84l6.5 6.5L122 77" fill="none" stroke="#2f7d4b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><h2>You're all caught up</h2><p>${(n=>n?`${n} request${n==1?'':'s'} decided today. Approved reimbursements go out with the next paycheck.`:'Nothing needs your approval right now.')(I.filter(v=>v.st=='done').length)}</p><button class="btn" onclick="tab='auto';draw()">${flagged().length?`Review ${flagged().length} flagged approval${flagged().length==1?'':'s'}`:'Open Agent Review'}</button></div>`;
  return h+'</div>'}
 
 const mins=x=>2+(x.id*7)%9;
@@ -482,7 +483,7 @@ function modalHtml(){const x=I.find(v=>v.id==modal);if(!x)return '';
   <div class="d-body one rej"><div class="col"><p class="label" style="margin:0">${APV[x.tag]}</p><button class="lnk" style="align-self:flex-start;margin-top:6px" onclick="openModal(${x.id})">Request details</button></div></div>
   <div class="d-foot"><div class="acts"><button class="btn ghost" onclick="cancelReject()">Cancel</button><button class="btn pri" onclick="confirmApprove()">Approve exception</button></div></div></div></div>`;
  if(mode=='reject')return `<div class="scrim" onclick="closeModal()"><div class="dialog narrow" role="dialog" aria-modal="true" aria-label="Reject request" onclick="event.stopPropagation()">${head}
-  <div class="d-body one rej"><div class="col"><label class="label" for="rej">Reason for rejecting</label><textarea id="rej" class="${rejErr?'bad':''}" aria-invalid="${rejErr}" aria-describedby="rejmsg" oninput="rejText=this.value;if(rejErr&&this.value.trim()){rejErr=false;this.classList.remove('bad');const m=$('#rejmsg');m.className='ihint';m.textContent='${first(x)} will see this. Edit it if you want to say more.'}">${esc(rejText)}</textarea><p id="rejmsg" class="${rejErr?'ferr':'ihint'}" ${rejErr?'role="alert"':''}>${rejErr?`Add a reason so ${first(x)} knows why.`:`${first(x)} will see this. Edit it if you want to say more.`}</p></div></div>
+  <div class="d-body one rej"><div class="col"><label class="label" for="rej">Reason for rejecting</label><textarea id="rej" class="${rejErr?'bad':''}" aria-invalid="${rejErr}" aria-describedby="rejmsg" oninput="rejText=this.value;if(rejErr&&this.value.trim()){rejErr=false;this.classList.remove('bad');const m=$('#rejmsg');m.className='ihint';m.textContent='${first(x)} will see this. Edit it if you want to say more.'}">${esc(rejText)}</textarea><p id="rejmsg" class="${rejErr?'ferr':'ihint'}" ${rejErr?'role="alert"':''}>${rejErr?`${ic('alert')}<span>Add a reason so ${first(x)} knows why.</span>`:`${first(x)} will see this. Edit it if you want to say more.`}</p></div></div>
   <div class="d-foot"><div class="acts"><button class="btn ghost" onclick="cancelReject()">Cancel</button><button class="btn danger" onclick="confirmReject()">Reject and notify ${first(x)}</button></div></div></div></div>`;
  const wait=x.st=='wait';if(wait&&!x.steps){x.steps=[S('stop','Agent check',x.miss+'. The agent asked '+first(x)+' to add it.')];x.rcNote=x.rcNote||'No receipt on file yet'}
  const need=x.st=='need',fin=x.amt>1000,closed=x.st=='hist'||x.st=='done',hs=closed?hstat(x):null,when=x.date?x.date+', 26':'Today';
