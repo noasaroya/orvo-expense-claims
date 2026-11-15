@@ -137,6 +137,7 @@ textarea.bad{border-color:var(--destructive)!important;box-shadow:0 0 0 3px var(
 .mpop{position:absolute;top:calc(100% + 6px);left:0;z-index:20;min-width:220px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 32px -12px rgba(20,16,40,.28),0 2px 6px rgba(20,16,40,.06);padding:6px}
 .mopt{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:14px}
 .mopt:hover{background:var(--muted)}
+.mopt .cw{color:var(--muted-fg);display:grid;place-items:center;flex:none;margin-right:-2px}.mopt .cw svg{width:18px;height:18px}
 .mopt input{width:16px;height:16px;margin:0;accent-color:var(--primary);cursor:pointer}
 .mfoot{border-top:1px solid var(--border);margin-top:6px;padding:8px 10px 4px;display:flex;justify-content:flex-end}
 .mfoot .lnk:disabled{opacity:.4;cursor:default}
@@ -529,7 +530,7 @@ function histTab(){
  const all=I.filter(x=>x.st=='done'||x.st=='hist').sort((a,b)=>(a.st=='done'?0:1)-(b.st=='done'?0:1));
  const L=all.filter(x=>(x.st=='done'?'2026-11':x.month)==hMonth&&(hStat=='all'||hstat(x)==hStat)&&(!hCats.length||hCats.includes(x.cat)));
  const CATS=[...new Set(all.map(x=>x.cat))].sort();const catLabel=!hCats.length?'All categories':hCats.length==1?hCats[0]:hCats.length+' categories';
- const catSel=`<div class="msel"><button class="mbtn ${hCats.length?'has':''}" aria-haspopup="true" aria-expanded="${hCatOpen}" onclick="hCatOpen=!hCatOpen;draw()">${catLabel}</button>${hCatOpen?`<div class="mpop" role="group" aria-label="Category">${CATS.map(c=>`<label class="mopt"><input type="checkbox" ${hCats.includes(c)?'checked':''} onchange="togCat('${c}')">${c}</label>`).join('')}<div class="mfoot"><button class="lnk" ${hCats.length?'':'disabled'} onclick="hCats=[];hp=1;draw()">Clear</button></div></div>`:''}</div>`;
+ const catSel=`<div class="msel"><button class="mbtn ${hCats.length?'has':''}" aria-haspopup="true" aria-expanded="${hCatOpen}" onclick="hCatOpen=!hCatOpen;draw()">${catLabel}</button>${hCatOpen?`<div class="mpop" role="group" aria-label="Category">${CATS.map(c=>`<label class="mopt"><input type="checkbox" ${hCats.includes(c)?'checked':''} onchange="togCat('${c}')"><span class="cw">${ic(CAT[c]||'receipt')}</span>${c}</label>`).join('')}<div class="mfoot"><button class="lnk" ${hCats.length?'':'disabled'} onclick="hCats=[];hp=1;draw()">Clear</button></div></div>`:''}</div>`;
  const pages=Math.max(1,Math.ceil(L.length/PER));hp=Math.min(Math.max(hp,1),pages);const from=(hp-1)*PER,to=Math.min(from+PER,L.length);
  const chip=(k,t)=>`<button class="chip ${hStat==k?'on':''}" aria-pressed="${hStat==k}" onclick="hStat='${k}';hp=1;draw()">${t}</button>`;
  return `<div class="filters"><select aria-label="Month" onchange="hMonth=this.value;hp=1;draw()"><option value="2026-11" ${hMonth=='2026-11'?'selected':''}>November 2026</option><option value="2026-10" ${hMonth=='2026-10'?'selected':''}>October 2026</option></select>${catSel}
