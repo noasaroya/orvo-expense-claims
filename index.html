@@ -178,7 +178,8 @@ textarea.bad{border-color:var(--destructive)!important;box-shadow:0 0 0 3px var(
 .panes{position:relative;min-height:0;overflow:auto}
 .pane.off{visibility:hidden}
 .pane.abs{position:absolute;inset:0;overflow:auto}
-.rcwrap{position:relative;background:var(--muted);border-radius:12px;padding:44px 20px 24px;display:grid;place-items:center;align-self:start}
+.rcwrap{position:relative;background:radial-gradient(120% 90% at 30% 20%,#d8d2c8 0%,#c4bdb1 60%,#aaa295 100%);border-radius:12px;padding:44px 20px 28px;display:grid;place-items:center;align-self:start;overflow:hidden}
+.rcwrap:has(.rc.none),.rcwrap:has(.rcerr){background:var(--muted)}
 .rcwrap .rc{width:100%;box-shadow:0 2px 10px rgba(0,0,0,.08)}
 .zoom{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:#fff;display:grid;place-items:center;color:var(--foreground)}
 .zoom:hover{border-color:#d9cfff;color:var(--primary-ink)}
@@ -187,6 +188,7 @@ textarea.bad{border-color:var(--destructive)!important;box-shadow:0 0 0 3px var(
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:40;display:grid;place-items:center;padding:40px;cursor:zoom-out}
 .lightbox .rc{width:min(520px,90vw);font-size:17px;padding:30px;cursor:default}
 .lightbox .rc h5{font-size:20px}
+.lightbox .rc.paper{zoom:1.9;padding:22px 16px 26px;font-size:11.5px}.lightbox .rc.paper h5{font-size:14px}
 .lightbox .x{color:#fff;top:20px;right:20px}
 .col{display:flex;flex-direction:column;gap:14px;min-width:0}
 .col .btn{align-self:flex-start}
@@ -246,8 +248,26 @@ textarea:focus{outline:none;border-color:var(--primary);box-shadow:var(--shadow-
 .rc .d{text-align:center;color:var(--muted-fg);margin-bottom:10px}
 .rc .r{display:flex;justify-content:space-between;gap:12px}
 .rc .tot{border-top:1px dashed #b6bfcd;margin-top:8px;padding-top:8px;font-weight:700}
+.rc.paper{--rot:0deg;--fold:50%;position:relative;width:230px!important;max-width:100%;border:0;border-radius:1px;padding:22px 16px 26px;font:11.5px/1.6 "Courier New",Courier,monospace;color:#33312e;letter-spacing:-.1px;transform:rotate(var(--rot));
+ background:linear-gradient(180deg,rgba(0,0,0,0) calc(var(--fold) - 1px),rgba(0,0,0,.05) var(--fold),rgba(255,255,255,.5) calc(var(--fold) + 1px),rgba(0,0,0,0) calc(var(--fold) + 3px)),linear-gradient(100deg,#f6f3ec 0%,#fdfcf8 35%,#f9f6ef 70%,#efebe2 100%);
+ box-shadow:none!important;clip-path:polygon(0% 4px,4% 0,8% 4px,12% 0,16% 4px,20% 0,24% 4px,28% 0,32% 4px,36% 0,40% 4px,44% 0,48% 4px,52% 0,56% 4px,60% 0,64% 4px,68% 0,72% 4px,76% 0,80% 4px,84% 0,88% 4px,92% 0,96% 4px,100% 0,100% 100%,96% calc(100% - 4px),92% 100%,88% calc(100% - 4px),84% 100%,80% calc(100% - 4px),76% 100%,72% calc(100% - 4px),68% 100%,64% calc(100% - 4px),60% 100%,56% calc(100% - 4px),52% 100%,48% calc(100% - 4px),44% 100%,40% calc(100% - 4px),36% 100%,32% calc(100% - 4px),28% 100%,24% calc(100% - 4px),20% 100%,16% calc(100% - 4px),12% 100%,8% calc(100% - 4px),4% 100%,0% calc(100% - 4px))}
+.rcshadow{filter:drop-shadow(0 1px 1px rgba(0,0,0,.14)) drop-shadow(0 8px 10px rgba(40,30,15,.28));display:grid;place-items:center;max-width:100%}
+.rc.paper::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .42 0 0 0 0 .38 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.rc.paper h5{font:700 14px "Courier New",Courier,monospace;letter-spacing:.5px}
+.rc.paper .d{color:#5a5650;font-size:10px;line-height:1.45;margin:2px 0 8px}
+.rc.paper .meta{display:flex;justify-content:space-between;font-size:10.5px;color:#4a4742}
+.rc.paper .dash{border-top:1px dashed #8f8a82;margin:6px 0}
+.rc.paper .sm{font-size:10.5px;color:#5a5650}
+.rc.paper .tot{border-top:0;margin-top:4px;padding-top:0;font-size:14px;font-weight:700}
+.rc.paper .thx{text-align:center;margin-top:10px;font-size:10.5px;letter-spacing:2px;color:#5a5650}
+.rc.paper .bar{height:26px;margin:8px auto 0;width:70%;opacity:.8;background:repeating-linear-gradient(90deg,#2b2925 0 2px,transparent 2px 3px,#2b2925 3px 4px,transparent 4px 7px,#2b2925 7px 10px,transparent 10px 11px,#2b2925 11px 12px,transparent 12px 15px)}
+.rc.paper.hand{font-family:"Bradley Hand","Segoe Script","Comic Sans MS",cursive;font-size:14px;color:#26335c;padding:20px 18px 24px;background:repeating-linear-gradient(180deg,transparent 0 23px,rgba(70,110,170,.22) 23px 24px),linear-gradient(100deg,#f4f1e8,#fbf9f2 50%,#ece8dd)}
+.rc.paper.hand h5{font:700 16px "Bradley Hand","Segoe Script",cursive;text-align:left}
+.rc.paper.hand .d{text-align:left;color:#26335c;font-size:13px}
+.rc.paper.hand .tot{font-size:15px;border-top:1px solid rgba(38,51,92,.5);padding-top:4px}
+.rc.paper.hand .sig{margin-top:8px;font-size:13px;transform:rotate(-3deg);opacity:.8}
 .rc.none{display:grid;place-items:center;min-height:120px;color:var(--muted-fg);font-family:inherit;font-size:14px;border-style:dashed;text-align:center}
-.rc.hand{font-family:"Bradley Hand","Segoe Script","Comic Sans MS",cursive;font-size:14px;transform:rotate(-.6deg);filter:blur(.35px)}
+
 
 /* toast */
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--navy);color:#fff;border-radius:var(--r-lg);padding:12px 12px 12px 16px;display:flex;gap:14px;align-items:center;box-shadow:0 10px 15px -3px rgba(0,0,0,.2);z-index:30;max-width:calc(100vw - 32px)}
@@ -412,7 +432,10 @@ const catCell=x=>`${x.cat}<div class="sub">${x.what}</div>`;
 const ago=x=>x.days?`${x.days} day${x.days>1?'s':''} ago`:'Today';
 const cnt=s=>by(s).length+(s=='auto'?HIDDEN:0);
 const flagged=()=>by('auto').filter(x=>x.flag&&!x.res);
-const receipt=x=>x.rc?`<div class="rc ${x.rc.hand?'hand':''}"><h5>${x.rc.v}</h5><div class="d">${x.rc.d}</div>${x.rc.l.map(l=>`<div class="r"><span>${l[0]}</span><span>${l[1]}</span></div>`).join('')}<div class="r tot"><span>TOTAL</span><span>$${x.rc.t}</span></div></div>`:`<div class="rc none">${x.rcNote}</div>`;
+const RADDR=['12 Herzl St, Tel Aviv','48 Ibn Gabirol St, Tel Aviv','7 HaNamal St, Haifa','101 Derech Begin, Tel Aviv','23 Rothschild Blvd, Tel Aviv','5 HaAtzmaut Rd, Haifa','66 Dizengoff St, Tel Aviv'];
+const receipt=x=>{if(!x.rc)return `<div class="rc none">${x.rcNote}</div>`;const r=x.rc,k=x.id||0,tot=parseFloat(String(r.t).replace(/,/g,''))||0,vat=(tot-tot/1.17).toFixed(2),rot=(((k*37)%5)-2)*.45;
+ if(r.hand)return `<div class="rcshadow"><div class="rc paper hand" style="--rot:${rot-.8}deg"><h5>${r.v}</h5><div class="d">${r.d}</div>${r.l.map(l=>`<div class="r"><span>${l[0]}</span><span>${l[1]}</span></div>`).join('')}<div class="r tot"><span>Total</span><span>$${r.t}</span></div><div class="sig">paid cash</div></div></div>`;
+ return `<div class="rcshadow"><div class="rc paper" style="--rot:${rot}deg;--fold:${38+(k*13)%30}%"><h5>${r.v}</h5><div class="d">${RADDR[k%RADDR.length]}<br>Tel 03-555-01${String(10+(k*7)%89)} · VAT ID 5140${String(10000+(k*7919)%89999)}</div><div class="meta"><span>${r.d}</span><span>#${String(1000+(k*613)%8999)}</span></div><div class="dash"></div>${r.l.map(l=>`<div class="r"><span>${l[0]}</span><span>${l[1]}</span></div>`).join('')}<div class="dash"></div><div class="r sm"><span>Incl. VAT 17%</span><span>${vat}</span></div><div class="r tot"><span>TOTAL</span><span>$${r.t}</span></div><div class="r sm"><span>VISA **** ${String(1000+(k*2731)%8999)}</span><span>APPROVED</span></div><div class="thx">THANK YOU</div><div class="bar"></div></div></div>`};
 
 function okToast(msg){undoFn=null;$('#toast').innerHTML=`<div class="toast ok" role="status">${ic('okc')}<span>${msg}</span></div>`;clearTimeout(toastT);toastT=setTimeout(()=>{$('#toast').innerHTML=''},4000)}
 function toast(msg,undo){if(undo){undoFn=null;clearTimeout(toastT);$('#toast').innerHTML='';return}undoFn=undo;$('#toast').innerHTML=`<div class="toast" role="status"><span>${msg}</span>${undo?'<button onclick="doUndo()">Undo</button>':''}</div>`;clearTimeout(toastT);toastT=setTimeout(()=>{$('#toast').innerHTML='';undoFn=null},7000)}
