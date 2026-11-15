@@ -249,6 +249,7 @@ textarea:focus{outline:none;border-color:var(--primary);box-shadow:var(--shadow-
 
 /* toast */
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--navy);color:#fff;border-radius:var(--r-lg);padding:12px 12px 12px 16px;display:flex;gap:14px;align-items:center;box-shadow:0 10px 15px -3px rgba(0,0,0,.2);z-index:30;max-width:calc(100vw - 32px)}
+.toast.ok{background:var(--success-light);color:#1f5c36;border:1px solid #bfe8cf;font-weight:500;gap:10px;padding:12px 18px 12px 14px;box-shadow:0 8px 20px -6px rgba(0,0,0,.15)}.toast.ok svg{width:20px;height:20px;flex:none;color:var(--success-ink)}
 .toast button{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:var(--r-control);height:32px;padding:0 12px;font-weight:600}
 
 .tabbar{display:none}
@@ -410,6 +411,7 @@ const cnt=s=>by(s).length+(s=='auto'?HIDDEN:0);
 const flagged=()=>by('auto').filter(x=>x.flag&&!x.res);
 const receipt=x=>x.rc?`<div class="rc ${x.rc.hand?'hand':''}"><h5>${x.rc.v}</h5><div class="d">${x.rc.d}</div>${x.rc.l.map(l=>`<div class="r"><span>${l[0]}</span><span>${l[1]}</span></div>`).join('')}<div class="r tot"><span>TOTAL</span><span>$${x.rc.t}</span></div></div>`:`<div class="rc none">${x.rcNote}</div>`;
 
+function okToast(msg){undoFn=null;$('#toast').innerHTML=`<div class="toast ok" role="status">${ic('okc')}<span>${msg}</span></div>`;clearTimeout(toastT);toastT=setTimeout(()=>{$('#toast').innerHTML=''},4000)}
 function toast(msg,undo){if(undo){undoFn=null;clearTimeout(toastT);$('#toast').innerHTML='';return}undoFn=undo;$('#toast').innerHTML=`<div class="toast" role="status"><span>${msg}</span>${undo?'<button onclick="doUndo()">Undo</button>':''}</div>`;clearTimeout(toastT);toastT=setTimeout(()=>{$('#toast').innerHTML='';undoFn=null},7000)}
 function doUndo(){if(undoFn)undoFn();undoFn=null;$('#toast').innerHTML='';draw()}
 function snap(x){const s=JSON.stringify(x);return()=>{for(const k in x)delete x[k];Object.assign(x,JSON.parse(s))}}
@@ -419,7 +421,7 @@ function closeModal(){modal=null;mode='view';zoom=false;draw()}
 function decide(id,a){const x=I.find(v=>v.id==id);
  const undo=snap(x);x.err=false;modal=null;const note=(notes[id]||'').trim(),fin=a=='Approve'&&x.amt>1000;
  x.st='done';x.out=a=='Approve'?(fin?'Approved · sent to Finance':'Approved by you'):'Rejected by you';x.ok=a=='Approve';
- toast(`${a=='Approve'?'Approved':'Rejected'} ${first(x)}'s request · ${money(x.amt)}${fin?'. Sent to Finance.':''}${note?` Your note was sent to ${first(x)}.`:''}`,undo);draw()}
+ okToast(a=='Approve'?(fin?'Request approved and sent to Finance':'Request approved'):`Request rejected. ${first(x)} was notified.`);draw()}
 let noFlag=false;const rcFail={1:true};
 function startConfirm(id){fresh=modal!=id;modal=id;mode='confirm';noFlag=false;draw()}
 function looksFine(id){const x=I.find(v=>v.id==id),undo=snap(x);const nf=mode=='confirm'&&noFlag;x.res='ok';modal=null;mode='view';noFlag=false;nf?toast('Rule sent to Finance for approval.'):toast('',undo);draw()}
