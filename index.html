@@ -115,6 +115,8 @@ h1{font-size:26px;line-height:36px;font-weight:700;letter-spacing:-.02em;margin:
 .lnk:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
 .note-err{background:var(--danger-light);color:#a11717;border-radius:var(--r-lg);padding:12px;display:flex;gap:8px;margin-bottom:10px;text-align:left}
 .note-err b{display:block;font-weight:600}
+textarea.bad{border-color:var(--destructive)!important;box-shadow:0 0 0 3px var(--danger-light)!important}.ferr{font-size:13px;color:#a11717;margin:6px 0 0}
+.rcerr{min-height:240px;width:100%;border-radius:var(--r-lg);background:var(--danger-light);color:#a11717;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px;text-align:center;font-size:14px}.rcerr b{font-weight:600}.rcerr span{color:var(--muted-fg)}.rcerr .btn{margin-top:10px;background:#fff}
 .banner{display:flex;gap:16px;align-items:flex-start;background:#f6f3ff;border-radius:12px;padding:22px 24px;margin-bottom:22px}
 .banner .bot{width:32px;height:32px;margin-top:2px}
 .b-main{display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -360,12 +362,13 @@ let mtab='agent',zoom=false,instOpen=false,instText='';const instSent={};
 const DRAFT={1:'Approve client meals that are up to $20 per person over the meal limit.',2:'Approve taxi rides under $40 without a receipt when the employee confirms the amount.',3:'Send conference tickets under $1,500 straight to Finance, without my approval.',4:'When two people submit the same receipt, ask them who paid before sending it to me.',5:'Approve equipment requests that are up to $5 over the employee\'s yearly budget.',6:'Don\'t treat two taxi rides on the same day as duplicates when the receipt times are different.',7:'When the attendee count doesn\'t match the receipt, ask the employee before sending it to me.'};
 let evOpen=false,rejText='',rejFrom='table';
 const RDRAFT={1:'The meal was $78 per person, which is over the $60 limit.',2:'A receipt is required for anything over $25, and there isn\'t one for this ride.',3:'I can\'t approve an expense over $1,000 right now. Let\'s talk before you resubmit.',4:'Shira submitted the same receipt. Only one of you can claim it.',5:'This would put you $39 over your yearly equipment budget.',6:'This looks like a duplicate of your earlier $31 ride on Nov 10.',7:'The claim says 3 people, but the receipt shows 2 covers. Please resubmit with the right details.'};
-function startReject(id){const x=I.find(v=>v.id==id);rejFrom=modal==id&&mode=='view'?'modal':'table';fresh=modal!=id;modal=id;mode='reject';rejText=(notes[id]||'').trim()||RDRAFT[id]||x.why||'';draw();const e=$('#rej');if(e){e.focus();e.selectionStart=e.value.length}}
+function startReject(id){const x=I.find(v=>v.id==id);rejFrom=modal==id&&mode=='view'?'modal':'table';fresh=modal!=id;modal=id;mode='reject';rejErr=false;rejText=(notes[id]||'').trim()||RDRAFT[id]||x.why||'';draw();const e=$('#rej');if(e){e.focus();e.selectionStart=e.value.length}}
 const APV={'Policy exception':'You\'re about to approve a policy exception.','Missing receipt':'You\'re about to approve a request with a missing receipt.','Duplicate receipt':'You\'re about to approve a request flagged as a duplicate receipt.','Data mismatch':'You\'re about to approve a request with a data mismatch.'};
 function startApprove(id){const x=I.find(v=>v.id==id);if(!APV[x.tag]){decide(id,'Approve');return}rejFrom=modal==id&&mode=='view'?'modal':'table';fresh=modal!=id;modal=id;mode='approve';draw()}
 function confirmApprove(){const id=modal;mode='view';decide(id,'Approve')}
 function cancelReject(){if(rejFrom=='modal'){mode='view';draw()}else closeModal()}
-function confirmReject(){const t=rejText.trim();if(!t)return;const id=modal;notes[id]=t;mode='view';decide(id,'Reject')}
+let rejErr=false;
+function confirmReject(){const t=rejText.trim();if(!t){rejErr=true;draw();const e=$('#rej');if(e)e.focus();return}const id=modal;notes[id]=t;mode='view';decide(id,'Reject')}
 const EV={
  1:{label:'Policy > Meals',src:'Company expense policy',text:'Meals: up to $60 per person, per meal.'},
  3:{label:'Policy > Approvals',src:'Company expense policy',text:'Anything over $1,000 also needs Finance approval.'},
@@ -413,11 +416,10 @@ function openModal(id){modal=id;mode='view';showRc=false;rev=null;fresh=true;mta
 function closeModal(){modal=null;mode='view';zoom=false;draw()}
 
 function decide(id,a){const x=I.find(v=>v.id==id);
- if(a=='Approve'&&x.amt>1000&&!failedOnce){failedOnce=true;x.err=true;draw();return}
  const undo=snap(x);x.err=false;modal=null;const note=(notes[id]||'').trim(),fin=a=='Approve'&&x.amt>1000;
  x.st='done';x.out=a=='Approve'?(fin?'Approved · sent to Finance':'Approved by you'):'Rejected by you';x.ok=a=='Approve';
  toast(`${a=='Approve'?'Approved':'Rejected'} ${first(x)}'s request · ${money(x.amt)}${fin?'. Sent to Finance.':''}${note?` Your note was sent to ${first(x)}.`:''}`,undo);draw()}
-let noFlag=false;
+let noFlag=false;const rcFail={1:true};
 function startConfirm(id){fresh=modal!=id;modal=id;mode='confirm';noFlag=false;draw()}
 function looksFine(id){const x=I.find(v=>v.id==id),undo=snap(x);const nf=mode=='confirm'&&noFlag;x.res='ok';modal=null;mode='view';noFlag=false;toast(`Confirmed ${first(x)}'s approval.${nf?' Rule sent to Finance for approval.':''}`,undo);draw()}
 function startReverse(id){fresh=modal!=id;modal=id;mode='reverse';rev=null;draw()}
@@ -480,7 +482,7 @@ function modalHtml(){const x=I.find(v=>v.id==modal);if(!x)return '';
   <div class="d-body one rej"><div class="col"><p class="label" style="margin:0">${APV[x.tag]}</p><button class="lnk" style="align-self:flex-start;margin-top:6px" onclick="openModal(${x.id})">Request details</button></div></div>
   <div class="d-foot"><div class="acts"><button class="btn ghost" onclick="cancelReject()">Cancel</button><button class="btn pri" onclick="confirmApprove()">Approve exception</button></div></div></div></div>`;
  if(mode=='reject')return `<div class="scrim" onclick="closeModal()"><div class="dialog narrow" role="dialog" aria-modal="true" aria-label="Reject request" onclick="event.stopPropagation()">${head}
-  <div class="d-body one rej"><div class="col"><label class="label" for="rej">Reason for rejecting</label><textarea id="rej" oninput="rejText=this.value">${esc(rejText)}</textarea><p class="ihint">${first(x)} will see this. Edit it if you want to say more.</p></div></div>
+  <div class="d-body one rej"><div class="col"><label class="label" for="rej">Reason for rejecting</label><textarea id="rej" class="${rejErr?'bad':''}" aria-invalid="${rejErr}" aria-describedby="rejmsg" oninput="rejText=this.value;if(rejErr&&this.value.trim()){rejErr=false;this.classList.remove('bad');const m=$('#rejmsg');m.className='ihint';m.textContent='${first(x)} will see this. Edit it if you want to say more.'}">${esc(rejText)}</textarea><p id="rejmsg" class="${rejErr?'ferr':'ihint'}" ${rejErr?'role="alert"':''}>${rejErr?`Add a reason so ${first(x)} knows why.`:`${first(x)} will see this. Edit it if you want to say more.`}</p></div></div>
   <div class="d-foot"><div class="acts"><button class="btn ghost" onclick="cancelReject()">Cancel</button><button class="btn danger" onclick="confirmReject()">Reject and notify ${first(x)}</button></div></div></div></div>`;
  const wait=x.st=='wait';if(wait&&!x.steps){x.steps=[S('stop','Agent check',x.miss+'. The agent asked '+first(x)+' to add it.')];x.rcNote=x.rcNote||'No receipt on file yet'}
  const need=x.st=='need',fin=x.amt>1000,closed=x.st=='hist'||x.st=='done',hs=closed?hstat(x):null,when=x.date?x.date+', 26':'Today';
@@ -500,7 +502,7 @@ function modalHtml(){const x=I.find(v=>v.id==modal);if(!x)return '';
  const agentTab=`<div class="d-body"><div class="col"><p class="label">What the agent did</p><ol class="flow">${flow}</ol></div>
   <div class="col">${tagHtml}${box}</div></div>`;
  const detTab=`<div class="d-body details"><dl class="dl">${det.map(d=>`<dt>${d[0]}</dt><dd>${d[1]}</dd>`).join('')}</dl>
-  <div class="rcwrap">${receipt(x)}${x.rc?`<button class="zoom" title="Enlarge receipt" aria-label="Enlarge receipt" onclick="zoom=true;draw()">${ic('zoomin')}</button>`:''}</div></div>`;
+  <div class="rcwrap">${x.rc&&rcFail[x.id]?`<div class="rcerr" role="alert">${ic('alert')}<b>Couldn't load the receipt</b><span>Check your connection and try again.</span><button class="btn sm" onclick="delete rcFail[${x.id}];draw()">Try again</button></div>`:receipt(x)}${x.rc&&!rcFail[x.id]?`<button class="zoom" title="Enlarge receipt" aria-label="Enlarge receipt" onclick="zoom=true;draw()">${ic('zoomin')}</button>`:''}</div></div>`;
  return `<div class="scrim" onclick="closeModal()"><div class="dialog" role="dialog" aria-modal="true" aria-label="${x.n}, ${x.what}" onclick="event.stopPropagation()">${head}
   <div class="mtabs" role="tablist"><button class="mtab ${mtab=='agent'?'on':''}" role="tab" aria-selected="${mtab=='agent'}" onclick="mtab='agent';draw()">Agent review</button><button class="mtab ${mtab=='details'?'on':''}" role="tab" aria-selected="${mtab=='details'}" onclick="mtab='details';draw()">Request details</button></div>
   <div class="panes"><div class="pane ${mtab=='agent'?'':'off'}">${agentTab}</div><div class="pane abs ${mtab=='details'?'':'off'}">${detTab}</div></div>
