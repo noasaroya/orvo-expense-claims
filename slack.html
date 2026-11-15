@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orvo Expenses · Employee messages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--side:#3b1d4a;--side-2:#4d2a5f;--side-fg:#d9cfe0;--sel:#7849ff;--ink:#1d1c1d;--mut:#616061;--line:#e3e3e6;--link:#1264a3;--ok:#1f8a4c;--warn:#d98a00;--bad:#d1344b}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:15px/1.47 Lato,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--side);display:flex;flex-direction:column}
+button{font:inherit;cursor:pointer}
+.top{height:40px;flex:none;display:flex;align-items:center;justify-content:center;background:#2c1438}
+.search{width:min(620px,50%);height:26px;border-radius:6px;background:rgba(255,255,255,.16);color:#e6dcec;font-size:13px;display:flex;align-items:center;gap:8px;padding:0 10px}
+.app{flex:1;min-height:0;display:grid;grid-template-columns:260px 1fr}
+.side{color:var(--side-fg);padding:12px 8px;overflow:auto}
+.ws{display:flex;align-items:center;justify-content:space-between;padding:4px 10px 14px;font-weight:900;font-size:18px;color:#fff}
+.ws i{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;font-style:normal;font-size:14px}
+.sec{margin:14px 0 4px;padding:0 10px;font-size:13px;opacity:.75;display:flex;gap:6px;align-items:center}
+.it{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:6px;font-size:15px;white-space:nowrap}
+.it .h{width:18px;text-align:center;opacity:.8}
+.it.on{background:var(--sel);color:#fff;font-weight:700}
+.it .dot{width:9px;height:9px;border-radius:50%;background:#2bac76;margin:0 4px 0 5px}
+.it .dot.off{background:none;border:1.5px solid var(--side-fg)}
+.it .sq{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;font-size:11px;font-weight:900;color:#fff}
+.it .n{margin-left:auto;background:#e01e5a;color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:0 7px;line-height:18px}
+.main{background:#fff;border-radius:8px 0 0 0;display:flex;flex-direction:column;min-width:0;min-height:0}
+.head{flex:none;border-bottom:1px solid var(--line);padding:10px 20px 0}
+.head .t{display:flex;align-items:center;gap:8px;font-weight:900;font-size:18px}
+.logo{border-radius:8px;background:linear-gradient(135deg,#7849ff,#a583ff);color:#fff;display:grid;place-items:center;font-weight:900;flex:none}
+.head .logo{width:24px;height:24px;font-size:13px;border-radius:6px}
+.tag{font-size:10px;font-weight:700;background:#e8e8e8;color:#5c5c5c;border-radius:3px;padding:1px 4px;letter-spacing:.3px}
+.tabs{display:flex;gap:20px;margin-top:8px;font-size:13px;color:var(--mut)}
+.tabs span{padding:6px 0}
+.tabs .on{color:var(--ink);font-weight:700;border-bottom:2px solid var(--sel)}
+.feed{flex:1;overflow:auto;padding:8px 0 16px}
+.intro{padding:24px 20px 8px;display:flex;gap:14px;align-items:center}
+.intro .logo{width:56px;height:56px;font-size:26px;border-radius:12px}
+.intro b{font-size:18px;font-weight:900;display:block}
+.intro span{color:var(--mut)}
+.day{display:flex;align-items:center;margin:14px 0 6px}
+.day::before,.day::after{content:"";flex:1;border-top:1px solid var(--line)}
+.day span{border:1px solid var(--line);border-radius:14px;padding:3px 14px;font-size:13px;font-weight:700;background:#fff}
+.msg{display:flex;gap:10px;padding:8px 20px}
+.msg:hover{background:#f8f8f8}
+.msg .logo{width:36px;height:36px;font-size:17px}
+.msg .b{min-width:0;flex:1}
+.who{display:flex;align-items:baseline;gap:6px}
+.who b{font-weight:900}
+.who time{font-size:12px;color:var(--mut)}
+.msg p{margin:0}
+.card{margin-top:6px;border-left:4px solid var(--c);padding:2px 0 2px 12px;max-width:620px}
+.card .st{font-weight:900;display:flex;align-items:center;gap:6px}
+.card .st svg{width:16px;height:16px;color:var(--c);flex:none}
+.req{margin:8px 0;border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:2px 16px;max-width:460px}
+.req b{font-weight:700}
+.req small{color:var(--mut);font-size:13px}
+.req .amt{font-weight:900;grid-row:1/3;grid-column:2;align-self:center;font-size:16px}
+.card .note{color:var(--mut);font-size:13px;margin-top:6px}
+.quote{margin:8px 0 0;padding-left:10px;border-left:3px solid #ddd;color:#454245}
+.quote small{display:block;color:var(--mut);font-size:13px}
+.acts{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.btn{border:1px solid #bbb;background:#fff;border-radius:6px;padding:5px 12px;font-weight:700;font-size:14px;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:#f6f6f6}
+.btn.pri{background:#007a5a;border-color:#007a5a;color:#fff}
+.btn.pri:hover{background:#148567}
+a.lk{color:var(--link);text-decoration:none;font-size:14px}
+a.lk:hover{text-decoration:underline}
+.done{display:none;color:var(--ok);font-weight:700;font-size:14px;align-items:center;gap:6px}
+.card.sent .acts .btn{display:none}.card.sent .done{display:inline-flex}
+.new{display:flex;align-items:center;margin:10px 20px 0;color:#e01e5a;font-size:13px;font-weight:700}
+.new::before{content:"";flex:1;border-top:1px solid #e01e5a;margin-right:8px}
+.comp{flex:none;margin:0 20px 20px;border:1px solid #bdbdbd;border-radius:8px;padding:10px 12px;color:#8a8a8a;display:flex;justify-content:space-between;align-items:center}
+.comp i{width:28px;height:28px;border-radius:6px;background:#eee;display:grid;place-items:center;font-style:normal;color:#aaa}
+@media (max-width:760px){.app{grid-template-columns:1fr}.side{display:none}.main{border-radius:0}}
+</style>
+</head>
+<body>
+<div class="top"><div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search Orvo</div></div>
+<div class="app">
+<aside class="side">
+ <div class="ws">Orvo <i>✎</i></div>
+ <div class="it"><span class="h">◎</span>Threads</div>
+ <div class="it"><span class="h">@</span>Activity</div>
+ <div class="sec">▾ Channels</div>
+ <div class="it"><span class="h">#</span>general</div>
+ <div class="it"><span class="h">#</span>design-team</div>
+ <div class="it"><span class="h">#</span>product-launch</div>
+ <div class="it"><span class="h">#</span>random</div>
+ <div class="sec">▾ Direct messages</div>
+ <div class="it"><span class="dot"></span>Noa Saroya</div>
+ <div class="it"><span class="dot off"></span>Dan Mizrahi</div>
+ <div class="it"><span class="dot"></span>Tamar Levi</div>
+ <div class="sec">▾ Apps</div>
+ <div class="it on"><span class="sq logo">O</span>Orvo Expenses<span class="n">1</span></div>
+ <div class="it"><span class="sq" style="background:#2f7de1">C</span>Calendar</div>
+</aside>
+<main class="main">
+ <div class="head">
+  <div class="t"><span class="logo">O</span>Orvo Expenses <span class="tag">APP</span></div>
+  <div class="tabs"><span class="on">Messages</span><span>About</span></div>
+ </div>
+ <div class="feed" id="feed">
+  <div class="intro"><span class="logo">O</span><div><b>Orvo Expenses</b><span>The expense agent reviews your requests and updates you here.</span></div></div>
+
+  <div class="day"><span>Tuesday, November 10th</span></div>
+  <div class="msg"><span class="logo">O</span><div class="b">
+   <div class="who"><b>Orvo Expenses</b><span class="tag">APP</span><time>9:14 AM</time></div>
+   <p>Hi Yael, I started reviewing your request and need one more detail from you.</p>
+   <div class="card" id="c1" style="--c:var(--warn)">
+    <div class="st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19z"/><path d="M12 10v4M12 17.5v.1"/></svg>Missing details</div>
+    <div class="req"><b>Team lunch · Café Nimrod</b><span class="amt">$186.00</span><small>Meals · Mon Nov 9</small></div>
+    <p>The <b>number of attendees</b> is missing. I need it to check the $60 per person meal limit.</p>
+    <div class="acts"><button class="btn pri" onclick="document.getElementById('c1').classList.add('sent')">Complete request</button><span class="done">✓ Details added. I'll continue the review.</span><a class="lk" href="./">View request</a></div>
+    <div class="note">If it's still missing on Mon Nov 16, the request goes to Noa Saroya as it is.</div>
+   </div>
+  </div></div>
+
+  <div class="day"><span>Thursday, November 12th</span></div>
+  <div class="msg"><span class="logo">O</span><div class="b">
+   <div class="who"><b>Orvo Expenses</b><span class="tag">APP</span><time>2:41 PM</time></div>
+   <div class="card" style="--c:var(--ok)">
+    <div class="st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 3 3 5-6"/></svg>Your request was approved</div>
+    <div class="req"><b>Taxi to client meeting · Gett</b><span class="amt">$42.00</span><small>Transportation · Wed Nov 11</small></div>
+    <p>You'll get <b>$42.00</b> back with your next paycheck, on <b>Dec 1, 26</b>.</p>
+    <div class="acts"><a class="lk" href="./">View request</a></div>
+   </div>
+  </div></div>
+
+  <div class="new">New</div>
+  <div class="day" style="margin-top:4px"><span>Friday, November 13th</span></div>
+  <div class="msg"><span class="logo">O</span><div class="b">
+   <div class="who"><b>Orvo Expenses</b><span class="tag">APP</span><time>11:02 AM</time></div>
+   <div class="card" style="--c:var(--bad)">
+    <div class="st"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></svg>Your request was rejected</div>
+    <div class="req"><b>Client dinner · Taizu</b><span class="amt">$252.00</span><small>Meals · Tue Nov 10 · 3 people</small></div>
+    <p>It doesn't meet the expense policy: meals are limited to <b>$60 per person</b>, and this came to $84 per person.</p>
+    <div class="quote"><small>Noa Saroya rejected it with this reason</small>Over the meal limit and not approved in advance. Please check with me before a client dinner like this.</div>
+    <div class="acts"><a class="btn" href="./">View request</a><a class="lk" href="#">Read the expense policy</a></div>
+    <div class="note">You won't be reimbursed for this request. Questions? Message Noa Saroya.</div>
+   </div>
+  </div></div>
+ </div>
+ <div class="comp">Message Orvo Expenses<i>➤</i></div>
+</main>
+</div>
+<script>const f=document.getElementById('feed');f.scrollTop=f.scrollHeight</script>
+</body>
+</html>
