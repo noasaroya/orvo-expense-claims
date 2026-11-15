@@ -476,7 +476,7 @@ function decide(id,a){const x=I.find(v=>v.id==id);
  const undo=snap(x);x.err=false;modal=null;const note=(notes[id]||'').trim(),fin=a=='Approve'&&x.amt>1000;
  x.st='done';x.out=a=='Approve'?(fin?'Approved · sent to Finance':'Approved by you'):'Rejected by you';x.ok=a=='Approve';
  okToast(a=='Approve'?(fin?'Request approved and sent to Finance':'Request approved'):`Request rejected. ${first(x)} was notified.`);draw()}
-let noFlag=false;const rcFail={1:true};
+let noFlag=false;const rcFail={};
 function startConfirm(id){fresh=modal!=id;modal=id;mode='confirm';noFlag=false;draw()}
 function looksFine(id){const x=I.find(v=>v.id==id),undo=snap(x);const nf=noFlag;x.res='ok';modal=null;mode='view';noFlag=false;nf?toast('Rule sent to Finance for approval.'):toast('',undo);draw()}
 function startReverse(id){fresh=modal!=id;modal=id;mode='reverse';rev=null;draw()}
