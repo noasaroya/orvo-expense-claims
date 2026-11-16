@@ -603,6 +603,7 @@ function histTab(){
  :NOMATCH}</div>`}
 
 function modalHtml(){const x=I.find(v=>v.id==modal);if(!x)return '';
+ if(mode=='reject'&&inPanel){mode='view';const base=modalHtml();mode='reject';inPanel=false;const top=modalHtml().replace('class="scrim"','class="scrim" style="z-index:30"').replaceAll('onclick="closeModal()"','onclick="cancelReject()"').replace('class="dialog narrow"','class="dialog narrow'+(rejErr?'':' in')+'"');inPanel=true;return base+top}
  const sp=inPanel||mode=='view'?' sp':'',ids=mode=='view'?listIds():[],pi=ids.indexOf(x.id);
  const pnav=pi>=0&&ids.length>1?`<div class="pnav"><button class="pb" ${pi==0?'disabled':''} onclick="go(-1)" title="Previous request" aria-label="Previous request">${ic('prev')}</button><button class="pb" ${pi==ids.length-1?'disabled':''} onclick="go(1)" title="Next request" aria-label="Next request">${ic('next')}</button><span class="sub">${pi+1} of ${ids.length}</span></div>`:'';
  const head=`<button class="x" aria-label="Close" onclick="closeModal()">${ic('x')}</button><div class="d-head">${av(x)}<div><h2>${x.n}</h2><p class="d-cat">${ic(CAT[x.cat]||'receipt')}${x.cat}</p></div><div class="d-amt"><b>${money(x.amt)}</b><span class="sub">Submitted ${x.date?x.date+', 26':ago(x).toLowerCase()}</span></div></div>`;
