@@ -364,6 +364,8 @@ textarea:focus{outline:none;border-color:var(--primary);box-shadow:var(--shadow-
 .d-foot.fbar{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;padding:12px 24px}
 .fbar .fr{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:10px 16px;flex-wrap:wrap}
 .fbar .acts{margin-top:0}
+.fbar .fr:has(.ckfoot){flex:1 1 100%}
+.fbar .ckfoot{margin-right:auto}
 .fbar .note-err{flex:1 1 100%}
 .btn.okb{color:var(--success-ink);border-color:var(--success)}.btn.okb:hover{background:var(--success-light)}
 .btn.nob{color:var(--destructive);border-color:#e3a39d}.btn.nob:hover{background:var(--danger-light)}
@@ -575,7 +577,8 @@ function decide(id,a){const x=I.find(v=>v.id==id);
 let noFlag=false;const rcFail={};
 function startConfirm(id){inPanel=inPanel&&modal==id;fresh=modal!=id;modal=id;mode='confirm';noFlag=false;draw()}
 function looksFine(id){const x=I.find(v=>v.id==id),undo=snap(x);const nf=noFlag;x.res='ok';modal=null;mode='view';noFlag=false;inPanel=false;nf?toast('Rule sent to Finance for approval.'):toast('',undo);draw()}
-function startReverse(id){inPanel=inPanel&&modal==id;fresh=modal!=id;modal=id;mode='reverse';rev=null;draw()}
+let fresh2=false;function backToPanel(){mode='view';draw()}
+function startReverse(id){inPanel=inPanel&&modal==id;fresh2=true;fresh=modal!=id;modal=id;mode='reverse';rev=null;draw()}
 function confirmReverse(){const x=I.find(v=>v.id==modal);if(!rev)return;const undo=snap(x);if(x.st=='hist'||x.st=='done'){x.prevHs=hstat(x);x.prevReason=hreason(x);if(x.st=='done'){x.st='hist';x.date='Nov 12';x.month='2026-11'}x.hs='reversed';x.reason=rev}else{x.res='rev';x.revWhy=rev}modal=null;mode='view';inPanel=false;
  toast(`Approval reversed. ${first(x)} was notified.`,undo);draw()}
 
@@ -627,7 +630,7 @@ function histTab(){
  :NOMATCH}</div>`}
 
 function modalHtml(){const x=I.find(v=>v.id==modal);if(!x)return '';
- if(mode=='reject'&&inPanel){mode='view';const base=modalHtml();mode='reject';inPanel=false;const top=modalHtml().replace('class="scrim"','class="scrim" style="z-index:30"').replaceAll('onclick="closeModal()"','onclick="cancelReject()"').replace('class="dialog narrow"','class="dialog narrow'+(rejErr?'':' in')+'"');inPanel=true;return base+top}
+ if((mode=='reject'||mode=='reverse')&&inPanel){const m=mode;mode='view';const base=modalHtml();mode=m;inPanel=false;const top=modalHtml().replace('class="scrim"','class="scrim" style="z-index:30"').replaceAll('onclick="closeModal()"',m=='reject'?'onclick="cancelReject()"':'onclick="backToPanel()"').replace('class="dialog narrow"','class="dialog narrow'+((m=='reject'?!rejErr:rev==null&&fresh2)?' in':'')+'"');inPanel=true;fresh2=false;return base+top}
  const sp=inPanel||mode=='view'?' sp':'',ids=mode=='view'?listIds():[],pi=ids.indexOf(x.id);
  const pnav=pi>=0&&ids.length>1?`<div class="pnav"><button class="pb" ${pi==0?'disabled':''} onclick="go(-1)" title="Previous request" aria-label="Previous request">${ic('prev')}</button><button class="pb" ${pi==ids.length-1?'disabled':''} onclick="go(1)" title="Next request" aria-label="Next request">${ic('next')}</button><span class="sub">${pi+1} of ${ids.length}</span></div>`:'';
  const head=`<button class="x" aria-label="Close" onclick="closeModal()">${ic('x')}</button><div class="d-head">${av(x)}<div><h2>${x.n}</h2><p class="d-cat">${ic(CAT[x.cat]||'receipt')}${x.cat}</p></div><div class="d-amt"><b>${money(x.amt)}</b><span class="sub">Submitted ${x.date?x.date+', 26':ago(x).toLowerCase()}</span></div></div>`;
