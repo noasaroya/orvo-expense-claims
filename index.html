@@ -60,6 +60,7 @@ h1{font-size:26px;line-height:36px;font-weight:700;letter-spacing:-.02em;margin:
 .tbl{width:100%;border-collapse:collapse}
 .tbl th{text-align:left;font-weight:700;font-size:13px;color:var(--foreground);background:#f6f6f9;padding:12px 12px;white-space:nowrap}
 .tbl td{padding:15px 12px;vertical-align:middle}
+@media (min-width:901px){.tbl tbody tr + tr td{border-top:1px solid #eeeef2}}
 .tbl th.th-act{text-align:left}
 .tbl .acts{justify-content:flex-start}
 .tbl th:first-child,.tbl td:first-child{padding-left:24px}.tbl th:last-child,.tbl td:last-child{padding-right:24px}
@@ -100,9 +101,15 @@ h1{font-size:26px;line-height:36px;font-weight:700;letter-spacing:-.02em;margin:
 .btn.danger{background:var(--destructive);border-color:var(--destructive);color:#fff;font-weight:600}.btn.danger:hover{filter:brightness(.95);background:var(--destructive)}
 .btn.ghost{border-color:transparent;box-shadow:none;color:var(--muted-fg);background:transparent;font-weight:500}.btn.ghost:hover{background:var(--muted);color:var(--foreground)}
 .acts{display:flex;gap:8px;justify-content:flex-end}
-.lnk{background:none;border:0;padding:0;height:32px;color:var(--primary-ink);font-weight:400;font-size:13.5px;white-space:nowrap;border-radius:4px;text-decoration:underline;text-underline-offset:3px}
+.lnk{background:none;border:0;padding:0;height:32px;color:var(--primary-ink);font-weight:400;font-size:13.5px;white-space:nowrap;border-radius:4px;text-decoration:none}
 .lnk:hover{color:var(--primary)}
+.alnk{background:none;border:0;height:32px;padding:0 8px;margin:0 -8px;font:inherit;font-size:14px;font-weight:600;white-space:nowrap;border-radius:6px;cursor:pointer;text-decoration:none}
+.alnk + .alnk{margin-left:14px}
+.alnk.ok{color:var(--success-ink)}.alnk.ok:hover{background:var(--success-light)}
+.alnk.no{color:var(--destructive)}.alnk.no:hover{background:var(--danger-light)}
+.alnk:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
 .btn + .lnk{margin-left:6px}
+.tbl .acts .lnk:first-child{margin-left:0}
 .lnk.cf{font-weight:400;display:inline-flex;align-items:center}.lnk.cf + .lnk{margin-left:18px}
 .spacer{visibility:hidden;pointer-events:none}
 .iacts{display:flex;gap:6px}
@@ -328,6 +335,10 @@ textarea:focus{outline:none;border-color:var(--primary);box-shadow:var(--shadow-
   .tabbar span.on{opacity:1;font-weight:700}.tabbar svg{width:24px;height:24px}
 }
 @media (prefers-reduced-motion:no-preference){.dialog.in{animation:rise .18s ease-out}@keyframes rise{from{opacity:0;transform:translateY(8px)}}}
+.srch input{font:inherit;font-size:14px;height:36px;width:240px;padding:0 10px 0 36px;border:1px solid var(--border);border-radius:8px;color:var(--foreground);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6b76' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 11px center}
+.srch input::placeholder{color:var(--muted-fg)}
+.srch input:focus-visible{outline:none;border-color:var(--primary);box-shadow:var(--shadow-focus)}
+@media (max-width:900px){.srch{flex:1 1 100%}.srch input{width:100%}}
 </style>
 </head>
 <body>
@@ -423,7 +434,23 @@ const PER=11;let pg=1;
   steps:r[5]=='approved'||r[5]=='rejected'?[PASS[0],PASS[1],S('stop','Policy check',r[6]),S('skip','Duplicate check')]:PASS,rc:{v:r[2].split(' · ')[1].toUpperCase(),d:r[4]+', 2026',l:[[r[2].split(' · ')[0],r[3].toFixed(2)]],t:r[3].toFixed(2)}}));
 let hMonth='2026-11',hStat='all',hp=1,hCats=[],hCatOpen=false,hMonOpen=false;
 const MONTHS=[['2026-11','November 2026',1],['2026-10','October 2026',1],['2026-09','September 2026'],['2026-08','August 2026'],['2026-07','July 2026'],['2026-06','June 2026'],['2026-05','May 2026'],['2026-04','April 2026']];
-function togCat(c){hCats=hCats.includes(c)?hCats.filter(v=>v!=c):[...hCats,c];hp=1;draw()}
+let fQ={need:'',auto:'',hist:''},fC={need:[],auto:[]},fS={need:'all',auto:'all'};
+const selCats=t=>t=='hist'?hCats:fC[t];
+function togCat(c){const a=selCats(tab),n=a.includes(c)?a.filter(v=>v!=c):[...a,c];if(tab=='hist')hCats=n;else fC[tab]=n;hp=1;pg=1;draw()}
+function clearCats(){if(tab=='hist')hCats=[];else fC[tab]=[];hp=1;pg=1;draw()}
+function clearF(){if(tab=='hist'){hStat='all';hCats=[]}else{fC[tab]=[];fS[tab]='all'}fQ[tab]='';hp=1;pg=1;draw()}
+function setQ(v){fQ[tab]=v;hp=1;pg=1;draw();const i=document.getElementById('fq');if(i){i.focus();i.setSelectionRange(v.length,v.length)}}
+const fm=(x,t)=>{const q=fQ[t].trim().toLowerCase();return !q||[x.n,x.cat,x.what,money(x.amt)].join(' ').toLowerCase().includes(q)};
+const fcat=(x,t)=>!selCats(t).length||selCats(t).includes(x.cat);
+const srch=t=>`<div class="srch"><input id="fq" type="search" placeholder="Search requests" aria-label="Search requests" value="${esc(fQ[t])}" oninput="setQ(this.value)"></div>`;
+function catDrop(t,CATS){const sel=selCats(t),label=!sel.length?'All categories':sel.length==1?sel[0]:sel.length+' categories';
+ return `<div class="msel"><button class="mbtn ${sel.length?'has':''}" aria-haspopup="true" aria-expanded="${hCatOpen}" onclick="hCatOpen=!hCatOpen;hMonOpen=false;fStOpen=false;draw()">${label}</button>${hCatOpen?`<div class="mpop" role="group" aria-label="Category">${CATS.map(c=>`<label class="mopt"><input type="checkbox" ${sel.includes(c)?'checked':''} onchange="togCat('${c}')"><span class="cw">${ic(CAT[c]||'receipt')}</span>${c}</label>`).join('')}<div class="mfoot"><button class="lnk" ${sel.length?'':'disabled'} onclick="clearCats()">Clear</button></div></div>`:''}</div>`}
+const fchip=(t,k,label)=>`<button class="chip ${fS[t]==k?'on':''}" aria-pressed="${fS[t]==k}" onclick="fS.${t}='${k}';pg=1;draw()">${label}</button>`;
+const NOMATCH=`<div class="empty"><h2>Nothing here</h2><p>No requests match these filters.</p><button class="btn" onclick="clearF()">Clear filters</button></div>`;
+let fStOpen=false;
+function stDrop(t,all,opts){const cur=opts.find(o=>o[0]==fS[t]);
+ return `<div class="msel"><button class="mbtn ${cur?'has':''}" aria-haspopup="listbox" aria-expanded="${fStOpen}" onclick="fStOpen=!fStOpen;hCatOpen=false;draw()">${cur?cur[1]:all}</button>${fStOpen?`<div class="mpop" role="listbox" aria-label="${all}">${[['all',all],...opts].map(o=>`<button class="mopt mrow ${o[0]==fS[t]?'on':''}" role="option" aria-selected="${o[0]==fS[t]}" onclick="fS.${t}='${o[0]}';pg=1;fStOpen=false;draw()">${o[1]}${o[0]==fS[t]?ic('check'):''}</button>`).join('')}</div>`:''}</div>`}
+const akind=x=>x.st=='wait'?'wait':x.res=='rev'?'rev':x.flag&&!x.res?'flag':'ok';
 let mtab='agent',zoom=false,instOpen=false,instText='';const instSent={};
 const DRAFT={11:'Don\'t flag approvals under $1,000 when every check passed.',12:'Don\'t flag handwritten taxi receipts under $50 when the amount is readable.',1:'Approve client meals that are up to $20 per person over the meal limit.',2:'Approve taxi rides under $40 without a receipt when the employee confirms the amount.',3:'Send conference tickets under $1,500 straight to Finance, without my approval.',4:'When two people submit the same receipt, ask them who paid before sending it to me.',5:'Approve equipment requests that are up to $5 over the employee\'s yearly budget.',6:'Don\'t treat two taxi rides on the same day as duplicates when the receipt times are different.',7:'When the attendee count doesn\'t match the receipt, ask the employee before sending it to me.'};
 let evOpen=false,rejText='',rejFrom='table';
@@ -500,29 +527,33 @@ function startReverse(id){fresh=modal!=id;modal=id;mode='reverse';rev=null;draw(
 function confirmReverse(){const x=I.find(v=>v.id==modal);if(!rev)return;const undo=snap(x);if(x.st=='hist'||x.st=='done'){x.prevHs=hstat(x);x.prevReason=hreason(x);if(x.st=='done'){x.st='hist';x.date='Nov 12';x.month='2026-11'}x.hs='reversed';x.reason=rev}else{x.res='rev';x.revWhy=rev}modal=null;mode='view';
  toast(`Approval reversed. ${first(x)} was notified.`,undo);draw()}
 
-function actions(x){return (x.err?`<div class="note-err" role="alert">${ic('alert')}<div><b>Couldn't reach Finance. Nothing was approved.</b>${first(x)}'s request is still waiting for you.</div></div>`:'')+`<div class="acts"><button class="btn sm" onclick="event.stopPropagation();startReject(${x.id})">Reject</button><button class="btn sm" onclick="event.stopPropagation();startApprove(${x.id})">${x.err?'Try again':'Approve'}</button></div>`}
+function actions(x){return (x.err?`<div class="note-err" role="alert">${ic('alert')}<div><b>Couldn't reach Finance. Nothing was approved.</b>${first(x)}'s request is still waiting for you.</div></div>`:'')+`<div class="acts"><button class="alnk ok" onclick="event.stopPropagation();startApprove(${x.id})">${x.err?'Try again':'Approve'}</button><button class="alnk no" onclick="event.stopPropagation();startReject(${x.id})">Reject</button></div>`}
 
-function needTab(){const L=by('need').sort((a,b)=>b.days-a.days);let h='<div class="card">';
+function needTab(){const A=by('need'),L=A.filter(x=>fm(x,'need')&&fcat(x,'need')&&(fS.need=='all'||x.tag==fS.need)).sort((a,b)=>b.days-a.days);
+ let h=(A.length?`<div class="filters">${srch('need')}${catDrop('need',[...new Set(A.map(x=>x.cat))].sort())}</div>`:'')+'<div class="card">';
  if(L.length)h+=`<table class="tbl"><thead><tr><th>Employee</th><th>Category</th><th>Amount</th><th>Reason</th><th>Agent recommends</th><th class="th-act">Action</th></tr></thead><tbody>${L.map(x=>`<tr class="row" onclick="openModal(${x.id})"><td>${personAgo(x)}</td><td>${catIcon(x)}</td><td class="amt">${money(x.amt)}</td><td><span class="pill ${x.tc}">${x.tag}</span><div class="why">${x.why}</div></td><td class="rec ${x.rec?'':'none'}">${x.rec||'No recommendation'}</td><td>${actions(x)}</td></tr>`).join('')}</tbody></table>`;
+ else if(A.length)h+=NOMATCH;
  else h+=`<div class="empty"><svg class="eart" viewBox="0 0 160 124" aria-hidden="true"><path d="M46 12a6 6 0 0 1 6-6h56a6 6 0 0 1 6 6v84l-8.5 8-8.5-8-8.5 8-8.5-8-8.5 8-8.5-8-8.5 8-8.5-8z" fill="#efeaff" stroke="#7849ff" stroke-width="2.5" stroke-linejoin="round"/><path d="M60 28h40M60 42h26M60 56h34" stroke="#b9a4ff" stroke-width="4" stroke-linecap="round"/><path d="M60 74h14" stroke="#7849ff" stroke-width="4" stroke-linecap="round"/><circle cx="112" cy="84" r="20" fill="#dff5e6" stroke="#fff" stroke-width="4"/><path d="M103 84l6.5 6.5L122 77" fill="none" stroke="#2f7d4b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><h2>You're all caught up</h2><p>${(n=>n?`${n} request${n==1?'':'s'} decided today. Approved reimbursements go out with the next paycheck.`:'Nothing needs your approval right now.')(I.filter(v=>v.st=='done').length)}</p><button class="btn" onclick="tab='auto';draw()">${flagged().length?`Review ${flagged().length} flagged approval${flagged().length==1?'':'s'}`:'Open Agent Review'}</button></div>`;
  return h+'</div>'}
 
 const mins=x=>2+(x.id*7)%9;
 function iconBtn(name,label,cls,on){return `<button class="ib ${cls}" title="${label}" aria-label="${label}" onclick="event.stopPropagation();${on}">${ic(name)}</button>`}
 function rowActs(x,inFlag){
- return `<div class="acts">${x.st=='auto'&&x.res=='rev'?`<span class="lnk cf spacer" aria-hidden="true">Confirm</span><button class="lnk" onclick="event.stopPropagation();restore(${x.id})">Restore approval</button>`:x.st!='auto'?'':(inFlag?`<button class="lnk cf" onclick="event.stopPropagation();startConfirm(${x.id})">Confirm</button>`:`<span class="lnk cf spacer" aria-hidden="true">Confirm</span>`)+`<button class="lnk" onclick="event.stopPropagation();startReverse(${x.id})">Reverse approval</button>`}</div>`}
+ return `<div class="acts">${x.st=='auto'&&x.res=='rev'?`<button class="lnk" onclick="event.stopPropagation();restore(${x.id})">Restore approval</button>`:x.st!='auto'?'':(inFlag?`<button class="lnk cf" onclick="event.stopPropagation();startConfirm(${x.id})">Confirm</button>`:'')+`<button class="lnk" onclick="event.stopPropagation();startReverse(${x.id})">Reverse approval</button>`}</div>`}
 function autoRow(x,inFlag){
  const st=x.res=='rev'?`<span class="pill p-dark">Reversed by you</span>`:x.res=='ok'?`<span class="pill p-ok">${ic('check')}Approved by agent &amp; confirmed by you</span><div class="kind took">Resolved in ${mins(x)} min</div>`:inFlag?`<span class="pill p-warn">${ic('flag')}Flagged approval</span><div class="kind took">Resolved in ${mins(x)} min</div>`:`<span class="pill p-ok">${ic('check')}Approved by agent</span><div class="kind took">Resolved in ${mins(x)} min</div>`;
  const why=x.res=='rev'?x.revWhy:inFlag||x.flag?x.flag.why:'All checks passed. Within policy.';
  return `<tr class="row" onclick="openModal(${x.id})"><td>${personWhen(x)}</td><td>${catIcon(x)}</td><td class="amt">${money(x.amt)}</td><td>${st}</td><td class="reason">${why}</td><td>${rowActs(x,inFlag)}</td></tr>`}
-function autoTab(){const F=flagged(),top=by('auto').filter(x=>x.flag&&x.res!='rev'),R=by('auto').filter(x=>!x.flag||x.res=='rev'),W=by('wait');
- const rows=[...top.map(x=>autoRow(x,!x.res)),...W.map(x=>`<tr class="row" onclick="openModal(${x.id})"><td>${personWhen(x)}</td><td>${catIcon(x)}</td><td class="amt">${money(x.amt)}</td><td><span class="pill p-pending">${ic('clock')}Waiting on employee</span><div class="kind took">Pending request</div></td><td class="reason">${x.miss}</td><td>${rowActs(x,0)}</td></tr>`),...R.map(x=>autoRow(x,0))];
+function autoTab(){const F=flagged(),top=by('auto').filter(x=>x.flag&&x.res!='rev'),R=by('auto').filter(x=>!x.flag||x.res=='rev'),W=by('wait'),ALL=[...top,...W,...R];
+ const ok=x=>fm(x,'auto')&&fcat(x,'auto')&&(fS.auto=='all'||akind(x)==fS.auto);
+ const rows=[...top.filter(ok).map(x=>autoRow(x,!x.res)),...W.filter(ok).map(x=>`<tr class="row" onclick="openModal(${x.id})"><td>${personWhen(x)}</td><td>${catIcon(x)}</td><td class="amt">${money(x.amt)}</td><td><span class="pill p-pending">${ic('clock')}Waiting on employee</span><div class="kind took">Pending request</div></td><td class="reason">${x.miss}</td><td>${rowActs(x,0)}</td></tr>`),...R.filter(ok).map(x=>autoRow(x,0))];
  const pages=Math.max(1,Math.ceil(rows.length/PER));pg=Math.min(Math.max(pg,1),pages);const from=(pg-1)*PER,to=Math.min(from+PER,rows.length);
- return `<div class="banner"><span class="bot"></span><div class="b-main"><div class="b-title"><b>${rows.length} new actions</b></div>
+ return `<div class="banner"><span class="bot"></span><div class="b-main"><div class="b-title"><b>${ALL.length} new actions</b></div>
  <div class="b-stats"><span><b>${R.length+top.length-F.length}</b> approved by agent</span><span><b>${W.length}</b> sent back to employees</span><span><b>${F.length}</b> flagged for a second look</span><i class="b-div" aria-hidden="true"></i><span><b>${R.length?Math.round(R.reduce((a,x)=>a+mins(x),0)/R.length):0} min</b> average time to resolve</span></div>
  <p class="b-note">${ic('info')}Requests approved by agent move to History after 7 days.</p></div></div>
- <div class="card"><table class="tbl"><thead><tr><th>Employee</th><th>Category</th><th>Amount</th><th>Status</th><th>Reason</th><th class="th-act">Action</th></tr></thead><tbody>${rows.slice(from,to).join('')}</tbody></table>
- <nav class="pager" aria-label="Pagination"><span class="sub">${from+1} to ${to} of ${rows.length}</span><div class="pg"><button class="pb" ${pg==1?'disabled':''} onclick="pg--;draw();scrollTo(0,0)" aria-label="Previous page">${ic('prev')}</button>${Array.from({length:pages},(_,k)=>`<button class="pb ${pg==k+1?'on':''}" ${pg==k+1?'aria-current="page"':''} onclick="pg=${k+1};draw();scrollTo(0,0)">${k+1}</button>`).join('')}<button class="pb" ${pg==pages?'disabled':''} onclick="pg++;draw();scrollTo(0,0)" aria-label="Next page">${ic('next')}</button></div></nav></div>`}
+ <div class="filters">${srch('auto')}${catDrop('auto',[...new Set(ALL.map(x=>x.cat))].sort())}${stDrop('auto','All statuses',[['flag','Flagged approval'],['wait','Waiting on employee'],['ok','Approved by agent'],...(ALL.some(x=>akind(x)=='rev')?[['rev','Reversed by you']]:[])])}</div>
+ <div class="card">${rows.length?`<table class="tbl"><thead><tr><th>Employee</th><th>Category</th><th>Amount</th><th>Status</th><th>Reason</th><th class="th-act">Action</th></tr></thead><tbody>${rows.slice(from,to).join('')}</tbody></table>
+ <nav class="pager" aria-label="Pagination"><span class="sub">${from+1} to ${to} of ${rows.length}</span><div class="pg"><button class="pb" ${pg==1?'disabled':''} onclick="pg--;draw();scrollTo(0,0)" aria-label="Previous page">${ic('prev')}</button>${Array.from({length:pages},(_,k)=>`<button class="pb ${pg==k+1?'on':''}" ${pg==k+1?'aria-current="page"':''} onclick="pg=${k+1};draw();scrollTo(0,0)">${k+1}</button>`).join('')}<button class="pb" ${pg==pages?'disabled':''} onclick="pg++;draw();scrollTo(0,0)" aria-label="Next page">${ic('next')}</button></div></nav>`:NOMATCH}</div>`}
 
 function reopen(id){const x=I.find(v=>v.id==id),undo=snap(x);
  if(x.st=='hist'){const d=parseInt(x.date.split(' ')[1]);Object.assign(x,{days:x.date.startsWith('Nov')?12-d:12+31-d,tag:/receipt/i.test(x.reason||'')?'Missing receipt':'Policy exception',tc:'p-danger',why:x.reason,rec:null,agent:'No recommendation. You rejected this on '+x.date+' and reopened it.'})}
@@ -533,17 +564,16 @@ function restore(id){const x=I.find(v=>v.id==id),undo=snap(x);
 const histAct=x=>{const h=hstat(x);return h=='rejected'?['Reopen request',`reopen(${x.id})`]:h=='reversed'?['Restore approval',`restore(${x.id})`]:['Reverse approval',`startReverse(${x.id})`]};
 function histTab(){
  const all=I.filter(x=>x.st=='done'||x.st=='hist').sort((a,b)=>(a.st=='done'?0:1)-(b.st=='done'?0:1));
- const L=all.filter(x=>(x.st=='done'?'2026-11':x.month)==hMonth&&(hStat=='all'||hstat(x)==hStat)&&(!hCats.length||hCats.includes(x.cat)));
- const CATS=[...new Set(all.map(x=>x.cat))].sort();const catLabel=!hCats.length?'All categories':hCats.length==1?hCats[0]:hCats.length+' categories';
- const catSel=`<div class="msel"><button class="mbtn ${hCats.length?'has':''}" aria-haspopup="true" aria-expanded="${hCatOpen}" onclick="hCatOpen=!hCatOpen;hMonOpen=false;draw()">${catLabel}</button>${hCatOpen?`<div class="mpop" role="group" aria-label="Category">${CATS.map(c=>`<label class="mopt"><input type="checkbox" ${hCats.includes(c)?'checked':''} onchange="togCat('${c}')"><span class="cw">${ic(CAT[c]||'receipt')}</span>${c}</label>`).join('')}<div class="mfoot"><button class="lnk" ${hCats.length?'':'disabled'} onclick="hCats=[];hp=1;draw()">Clear</button></div></div>`:''}</div>`;
+ const L=all.filter(x=>(x.st=='done'?'2026-11':x.month)==hMonth&&(hStat=='all'||hstat(x)==hStat)&&(!hCats.length||hCats.includes(x.cat))&&fm(x,'hist'));
+ const CATS=[...new Set(all.map(x=>x.cat))].sort();const catSel=catDrop('hist',CATS);
  const pages=Math.max(1,Math.ceil(L.length/PER));hp=Math.min(Math.max(hp,1),pages);const from=(hp-1)*PER,to=Math.min(from+PER,L.length);
  const chip=(k,t)=>`<button class="chip ${hStat==k?'on':''}" aria-pressed="${hStat==k}" onclick="hStat='${k}';hp=1;draw()">${t}</button>`;
- return `<div class="filters"><div class="msel"><button class="mbtn" aria-label="Month" aria-haspopup="listbox" aria-expanded="${hMonOpen}" onclick="hMonOpen=!hMonOpen;hCatOpen=false;draw()">${MONTHS.find(m=>m[0]==hMonth)[1]}</button>${hMonOpen?`<div class="mpop" role="listbox" aria-label="Month">${MONTHS.map(m=>`<button class="mopt mrow ${m[0]==hMonth?'on':''}" role="option" aria-selected="${m[0]==hMonth}" onclick="${m[2]?`hMonth='${m[0]}';hp=1;`:''}hMonOpen=false;draw()">${m[1]}${m[0]==hMonth?ic('check'):''}</button>`).join('')}</div>`:''}</div>${catSel}
+ return `<div class="filters">${srch('hist')}<div class="msel"><button class="mbtn" aria-label="Month" aria-haspopup="listbox" aria-expanded="${hMonOpen}" onclick="hMonOpen=!hMonOpen;hCatOpen=false;draw()">${MONTHS.find(m=>m[0]==hMonth)[1]}</button>${hMonOpen?`<div class="mpop" role="listbox" aria-label="Month">${MONTHS.map(m=>`<button class="mopt mrow ${m[0]==hMonth?'on':''}" role="option" aria-selected="${m[0]==hMonth}" onclick="${m[2]?`hMonth='${m[0]}';hp=1;`:''}hMonOpen=false;draw()">${m[1]}${m[0]==hMonth?ic('check'):''}</button>`).join('')}</div>`:''}</div>${catSel}
  <div class="chips">${chip('all','All')}${chip('approved','Approved by you')}${chip('rejected','Rejected by you')}${chip('auto','Approved by agent')}${chip('reversed','Reversed')}</div></div>
  <div class="card">${L.length?`<table class="tbl"><thead><tr><th>Employee</th><th>Category</th><th>Amount</th><th>Status</th><th>Reason</th><th class="th-act">Action</th></tr></thead><tbody>${L.slice(from,to).map(x=>{const h=HS[hstat(x)];
   return `<tr class="row" onclick="openModal(${x.id})"><td><div class="who">${av(x)}<div>${x.n}<small>${x.st=='done'?'Today <span class="bar">|</span> Nov 12, 26':x.date+', 26'}</small></div></div></td><td>${catIcon(x)}</td><td class="amt">${money(x.amt)}</td><td><span class="pill ${h[0]}">${h[2]?ic('check'):''}${h[1]}</span>${h[2]?`<div class="kind took">${wasPaid(x)?'Paid '+LASTPAY:'Pays '+NEXTPAY}</div>`:''}</td><td class="reason">${hreason(x)}</td><td><div class="acts"><button class="lnk" onclick="event.stopPropagation();${histAct(x)[1]}">${histAct(x)[0]}</button></div></td></tr>`}).join('')}</tbody></table>
  <nav class="pager" aria-label="Pagination"><span class="sub">${from+1} to ${to} of ${L.length}</span><div class="pg"><button class="pb" ${hp==1?'disabled':''} onclick="hp--;draw();scrollTo(0,0)" aria-label="Previous page">${ic('prev')}</button>${Array.from({length:pages},(_,k)=>`<button class="pb ${hp==k+1?'on':''}" ${hp==k+1?'aria-current="page"':''} onclick="hp=${k+1};draw();scrollTo(0,0)">${k+1}</button>`).join('')}<button class="pb" ${hp==pages?'disabled':''} onclick="hp++;draw();scrollTo(0,0)" aria-label="Next page">${ic('next')}</button></div></nav>`
- :`<div class="empty"><h2>Nothing here</h2><p>No requests match these filters.</p><button class="btn" onclick="hStat='all';hCats=[];draw()">Clear filters</button></div>`}</div>`}
+ :NOMATCH}</div>`}
 
 function modalHtml(){const x=I.find(v=>v.id==modal);if(!x)return '';
  const head=`<button class="x" aria-label="Close" onclick="closeModal()">${ic('x')}</button><div class="d-head">${av(x)}<div><h2>${x.n}</h2><p class="d-cat">${ic(CAT[x.cat]||'receipt')}${x.cat}</p></div><div class="d-amt"><b>${money(x.amt)}</b><span class="sub">Submitted ${x.date?x.date+', 26':ago(x).toLowerCase()}</span></div></div>`;
@@ -592,8 +622,8 @@ function draw(){const F=flagged().length;
  const keep=document.activeElement&&document.activeElement.id=='note';
  $('#modal').innerHTML=modal==null?'':modalHtml();if(fresh&&$('.dialog'))$('.dialog').classList.add('in');fresh=false;document.body.style.overflow=modal==null?'':'hidden';
  if(keep&&$('#note')){const n=$('#note');n.focus();n.selectionStart=n.value.length}}
-document.addEventListener('click',e=>{if((hCatOpen||hMonOpen)&&!e.target.closest('.msel')){hCatOpen=hMonOpen=false;draw()}});
-document.addEventListener('keydown',e=>{if(e.key=='Escape'&&(hCatOpen||hMonOpen)&&modal==null){hCatOpen=hMonOpen=false;draw();return}if(e.key!='Escape'||modal==null)return;if(zoom){zoom=false;draw()}else closeModal()});
+document.addEventListener('click',e=>{if((hCatOpen||hMonOpen||fStOpen)&&!e.target.closest('.msel')){hCatOpen=hMonOpen=fStOpen=false;draw()}});
+document.addEventListener('keydown',e=>{if(e.key=='Escape'&&(hCatOpen||hMonOpen||fStOpen)&&modal==null){hCatOpen=hMonOpen=fStOpen=false;draw();return}if(e.key!='Escape'||modal==null)return;if(zoom){zoom=false;draw()}else closeModal()});
 draw();
 </script>
 </body>
