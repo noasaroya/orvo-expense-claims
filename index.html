@@ -339,6 +339,24 @@ textarea:focus{outline:none;border-color:var(--primary);box-shadow:var(--shadow-
 .srch input::placeholder{color:var(--muted-fg)}
 .srch input:focus-visible{outline:none;border-color:var(--primary);box-shadow:var(--shadow-focus)}
 @media (max-width:900px){.srch{flex:1 1 100%}.srch input{width:100%}}
+.scrim.sp{place-items:stretch end;padding:0;background:rgba(20,16,40,.32)}
+.dialog.sp,.dialog.narrow.sp{width:min(560px,100%);height:100vh;height:100dvh;max-height:none;border-radius:0;box-shadow:-12px 0 40px -12px rgba(20,16,40,.3)}
+.dialog.sp .d-body,.dialog.sp .d-body.details{grid-template-columns:1fr;gap:24px;min-height:0}
+.dialog.sp .d-body>.col:nth-child(2){order:-1}
+.dialog.sp .panes,.dialog.sp>.d-body{flex:1;min-height:0}
+.dialog.sp .d-foot{margin-top:auto}
+.d-foot.fbar{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;padding:12px 24px}
+.fbar .fr{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:10px 16px;flex-wrap:wrap}
+.fbar .acts{margin-top:0}
+.fbar .note-err{flex:1 1 100%}
+.btn.okb{color:var(--success-ink);border-color:var(--success)}.btn.okb:hover{background:var(--success-light)}
+.btn.nob{color:var(--destructive);border-color:#e3a39d}.btn.nob:hover{background:var(--danger-light)}
+.pnav{display:flex;align-items:center;gap:6px}
+.pnav .pb{min-width:32px;height:32px}
+.pnav .sub{margin-left:8px;font-size:13px}
+.pnav + .d-head{padding-top:14px}
+@media (prefers-reduced-motion:no-preference){.dialog.sp.in{animation:slidein .22s ease-out}@keyframes slidein{from{opacity:.4;transform:translateX(40px)}}
+.dialog.sw>:not(.x):not(.pnav){animation:swapin .22s ease-out}@keyframes swapin{from{opacity:0;transform:translateX(10px)}}}
 </style>
 </head>
 <body>
@@ -455,9 +473,9 @@ let mtab='agent',zoom=false,instOpen=false,instText='';const instSent={};
 const DRAFT={11:'Don\'t flag approvals under $1,000 when every check passed.',12:'Don\'t flag handwritten taxi receipts under $50 when the amount is readable.',1:'Approve client meals that are up to $20 per person over the meal limit.',2:'Approve taxi rides under $40 without a receipt when the employee confirms the amount.',3:'Send conference tickets under $1,500 straight to Finance, without my approval.',4:'When two people submit the same receipt, ask them who paid before sending it to me.',5:'Approve equipment requests that are up to $5 over the employee\'s yearly budget.',6:'Don\'t treat two taxi rides on the same day as duplicates when the receipt times are different.',7:'When the attendee count doesn\'t match the receipt, ask the employee before sending it to me.'};
 let evOpen=false,rejText='',rejFrom='table';
 const RDRAFT={1:'The meal was $78 per person, which is over the $60 limit.',2:'A receipt is required for anything over $25, and there isn\'t one for this ride.',3:'I can\'t approve an expense over $1,000 right now. Let\'s talk before you resubmit.',4:'Shira submitted the same receipt. Only one of you can claim it.',5:'This would put you $39 over your yearly equipment budget.',6:'This looks like a duplicate of your earlier $31 ride on Nov 10.',7:'The claim says 3 people, but the receipt shows 2 covers. Please resubmit with the right details.'};
-function startReject(id){const x=I.find(v=>v.id==id);rejFrom=modal==id&&mode=='view'?'modal':'table';fresh=modal!=id;modal=id;mode='reject';rejErr=false;rejText=(notes[id]||'').trim()||RDRAFT[id]||x.why||'';draw();const e=$('#rej');if(e){e.focus();e.selectionStart=e.value.length}}
+function startReject(id){const x=I.find(v=>v.id==id);inPanel=inPanel&&modal==id;rejFrom=modal==id&&mode=='view'?'modal':'table';fresh=modal!=id;modal=id;mode='reject';rejErr=false;rejText=(notes[id]||'').trim()||RDRAFT[id]||x.why||'';draw();const e=$('#rej');if(e){e.focus();e.selectionStart=e.value.length}}
 const APV={'Policy exception':'You\'re about to approve a policy exception.','Missing receipt':'You\'re about to approve a request with a missing receipt.','Duplicate receipt':'You\'re about to approve a request flagged as a duplicate receipt.','Data mismatch':'You\'re about to approve a request with a data mismatch.'};
-function startApprove(id){const x=I.find(v=>v.id==id);if(!APV[x.tag]){decide(id,'Approve');return}rejFrom=modal==id&&mode=='view'?'modal':'table';fresh=modal!=id;modal=id;mode='approve';draw()}
+function startApprove(id){const x=I.find(v=>v.id==id);inPanel=inPanel&&modal==id;if(!APV[x.tag]){rejFrom=inPanel&&mode=='view'?'modal':'table';decide(id,'Approve');return}rejFrom=modal==id&&mode=='view'?'modal':'table';fresh=modal!=id;modal=id;mode='approve';draw()}
 function confirmApprove(){const id=modal;mode='view';decide(id,'Approve')}
 function cancelReject(){if(rejFrom=='modal'){mode='view';draw()}else closeModal()}
 let rejErr=false;
@@ -513,21 +531,30 @@ function okToast(msg){undoFn=null;$('#toast').innerHTML=`<div class="toast ok" r
 function toast(msg,undo){if(undo){undoFn=null;clearTimeout(toastT);$('#toast').innerHTML='';return}undoFn=undo;$('#toast').innerHTML=`<div class="toast" role="status"><span>${msg}</span>${undo?'<button onclick="doUndo()">Undo</button>':''}</div>`;clearTimeout(toastT);toastT=setTimeout(()=>{$('#toast').innerHTML='';undoFn=null},7000)}
 function doUndo(){if(undoFn)undoFn();undoFn=null;$('#toast').innerHTML='';draw()}
 function snap(x){const s=JSON.stringify(x);return()=>{for(const k in x)delete x[k];Object.assign(x,JSON.parse(s))}}
-function openModal(id){noFlag=false;modal=id;mode='view';showRc=false;rev=null;fresh=true;mtab='agent';zoom=false;evOpen=false;instOpen=false;instText=DRAFT[id]||'';draw()}
-function closeModal(){modal=null;mode='view';zoom=false;draw()}
+let inPanel=false,swap=false;
+function setModal(id){noFlag=false;modal=id;mode='view';showRc=false;rev=null;mtab='agent';zoom=false;evOpen=false;instOpen=false;instText=DRAFT[id]||'';inPanel=true}
+function openModal(id){setModal(id);fresh=true;draw()}
+function listIds(){
+ if(tab=='need')return by('need').filter(x=>fm(x,'need')&&fcat(x,'need')&&(fS.need=='all'||x.tag==fS.need)).sort((a,b)=>b.days-a.days).map(x=>x.id);
+ if(tab=='auto'){const top=by('auto').filter(x=>x.flag&&x.res!='rev'),R=by('auto').filter(x=>!x.flag||x.res=='rev'),W=by('wait');return [...top,...W,...R].filter(x=>fm(x,'auto')&&fcat(x,'auto')&&(fS.auto=='all'||akind(x)==fS.auto)).map(x=>x.id)}
+ return I.filter(x=>x.st=='done'||x.st=='hist').sort((a,b)=>(a.st=='done'?0:1)-(b.st=='done'?0:1)).filter(x=>(x.st=='done'?'2026-11':x.month)==hMonth&&(hStat=='all'||hstat(x)==hStat)&&(!hCats.length||hCats.includes(x.cat))&&fm(x,'hist')).map(x=>x.id)}
+function go(d){const ids=listIds(),n=ids[ids.indexOf(modal)+d];if(n==null)return;setModal(n);swap=true;draw()}
+function closeModal(){modal=null;mode='view';zoom=false;inPanel=false;draw()}
 
 function decide(id,a){const x=I.find(v=>v.id==id);
- const undo=snap(x);x.err=false;modal=null;const note=(notes[id]||'').trim(),fin=a=='Approve'&&x.amt>1000;
+ const idx=rejFrom=='modal'&&inPanel?listIds().indexOf(id):-1;rejFrom='table';
+ const undo=snap(x);x.err=false;modal=null;inPanel=false;const note=(notes[id]||'').trim(),fin=a=='Approve'&&x.amt>1000;
  x.st='done';x.out=a=='Approve'?(fin?'Approved · sent to Finance':'Approved by you'):'Rejected by you';x.ok=a=='Approve';
+ if(idx>=0){const ids=listIds(),n=ids[idx]!=null?ids[idx]:ids[0];if(n!=null){setModal(n);swap=true}}
  okToast(a=='Approve'?(fin?'Request approved and sent to Finance':'Request approved'):`Request rejected. ${first(x)} was notified.`);draw()}
 let noFlag=false;const rcFail={};
-function startConfirm(id){fresh=modal!=id;modal=id;mode='confirm';noFlag=false;draw()}
-function looksFine(id){const x=I.find(v=>v.id==id),undo=snap(x);const nf=noFlag;x.res='ok';modal=null;mode='view';noFlag=false;nf?toast('Rule sent to Finance for approval.'):toast('',undo);draw()}
-function startReverse(id){fresh=modal!=id;modal=id;mode='reverse';rev=null;draw()}
-function confirmReverse(){const x=I.find(v=>v.id==modal);if(!rev)return;const undo=snap(x);if(x.st=='hist'||x.st=='done'){x.prevHs=hstat(x);x.prevReason=hreason(x);if(x.st=='done'){x.st='hist';x.date='Nov 12';x.month='2026-11'}x.hs='reversed';x.reason=rev}else{x.res='rev';x.revWhy=rev}modal=null;mode='view';
+function startConfirm(id){inPanel=inPanel&&modal==id;fresh=modal!=id;modal=id;mode='confirm';noFlag=false;draw()}
+function looksFine(id){const x=I.find(v=>v.id==id),undo=snap(x);const nf=noFlag;x.res='ok';modal=null;mode='view';noFlag=false;inPanel=false;nf?toast('Rule sent to Finance for approval.'):toast('',undo);draw()}
+function startReverse(id){inPanel=inPanel&&modal==id;fresh=modal!=id;modal=id;mode='reverse';rev=null;draw()}
+function confirmReverse(){const x=I.find(v=>v.id==modal);if(!rev)return;const undo=snap(x);if(x.st=='hist'||x.st=='done'){x.prevHs=hstat(x);x.prevReason=hreason(x);if(x.st=='done'){x.st='hist';x.date='Nov 12';x.month='2026-11'}x.hs='reversed';x.reason=rev}else{x.res='rev';x.revWhy=rev}modal=null;mode='view';inPanel=false;
  toast(`Approval reversed. ${first(x)} was notified.`,undo);draw()}
 
-function actions(x,btn){return (x.err?`<div class="note-err" role="alert">${ic('alert')}<div><b>Couldn't reach Finance. Nothing was approved.</b>${first(x)}'s request is still waiting for you.</div></div>`:'')+`<div class="acts">${btn?`<button class="btn sm" onclick="event.stopPropagation();startReject(${x.id})">Reject</button><button class="btn sm" onclick="event.stopPropagation();startApprove(${x.id})">${x.err?'Try again':'Approve'}</button>`:`<button class="alnk ok" onclick="event.stopPropagation();startApprove(${x.id})">${x.err?'Try again':'Approve'}</button><button class="alnk no" onclick="event.stopPropagation();startReject(${x.id})">Reject</button>`}</div>`}
+function actions(x,btn){return (x.err?`<div class="note-err" role="alert">${ic('alert')}<div><b>Couldn't reach Finance. Nothing was approved.</b>${first(x)}'s request is still waiting for you.</div></div>`:'')+`<div class="acts">${btn?`<button class="btn sm okb" onclick="event.stopPropagation();startApprove(${x.id})">${x.err?'Try again':'Approve'}</button><button class="btn sm nob" onclick="event.stopPropagation();startReject(${x.id})">Reject</button>`:`<button class="alnk ok" onclick="event.stopPropagation();startApprove(${x.id})">${x.err?'Try again':'Approve'}</button><button class="alnk no" onclick="event.stopPropagation();startReject(${x.id})">Reject</button>`}</div>`}
 
 function needTab(){const A=by('need'),L=A.filter(x=>fm(x,'need')&&fcat(x,'need')&&(fS.need=='all'||x.tag==fS.need)).sort((a,b)=>b.days-a.days);
  let h=(A.length?`<div class="filters">${srch('need')}${catDrop('need',[...new Set(A.map(x=>x.cat))].sort())}</div>`:'')+'<div class="card">';
@@ -576,18 +603,20 @@ function histTab(){
  :NOMATCH}</div>`}
 
 function modalHtml(){const x=I.find(v=>v.id==modal);if(!x)return '';
+ const sp=inPanel||mode=='view'?' sp':'',ids=mode=='view'?listIds():[],pi=ids.indexOf(x.id);
+ const pnav=pi>=0&&ids.length>1?`<div class="pnav"><button class="pb" ${pi==0?'disabled':''} onclick="go(-1)" title="Previous request" aria-label="Previous request">${ic('prev')}</button><button class="pb" ${pi==ids.length-1?'disabled':''} onclick="go(1)" title="Next request" aria-label="Next request">${ic('next')}</button><span class="sub">${pi+1} of ${ids.length}</span></div>`:'';
  const head=`<button class="x" aria-label="Close" onclick="closeModal()">${ic('x')}</button><div class="d-head">${av(x)}<div><h2>${x.n}</h2><p class="d-cat">${ic(CAT[x.cat]||'receipt')}${x.cat}</p></div><div class="d-amt"><b>${money(x.amt)}</b><span class="sub">Submitted ${x.date?x.date+', 26':ago(x).toLowerCase()}</span></div></div>`;
- if(mode=='reverse')return `<div class="scrim" onclick="closeModal()"><div class="dialog narrow" role="dialog" aria-modal="true" aria-label="Reverse approval" onclick="event.stopPropagation()">${head}
+ if(mode=='reverse')return `<div class="scrim${sp}" onclick="closeModal()"><div class="dialog narrow${sp}" role="dialog" aria-modal="true" aria-label="Reverse approval" onclick="event.stopPropagation()">${head}
   <div class="d-body one"><div class="col"><p class="label">What's wrong with this approval?</p>${REASONS.map(r=>`<div class="radio ${rev==r?'on':''}" role="radio" aria-checked="${rev==r}" tabindex="0" onclick="rev='${r}';draw()"><i></i>${r}</div>`).join('')}
   <label class="label" for="note">Note for ${first(x)} (optional)</label><textarea id="note" oninput="notes[${x.id}]=this.value">${notes[x.id]||''}</textarea></div></div>
   <div class="d-foot"><div class="acts"><button class="btn ghost" onclick="mode='view';draw()">Cancel</button><button class="btn danger" ${rev?'':'disabled style="opacity:.5;cursor:not-allowed"'} onclick="confirmReverse()">Reverse approval</button></div></div></div></div>`;
- if(mode=='confirm')return `<div class="scrim" onclick="closeModal()"><div class="dialog narrow" role="dialog" aria-modal="true" aria-label="Confirm approval" onclick="event.stopPropagation()">${head}
+ if(mode=='confirm')return `<div class="scrim${sp}" onclick="closeModal()"><div class="dialog narrow${sp}" role="dialog" aria-modal="true" aria-label="Confirm approval" onclick="event.stopPropagation()">${head}
   <div class="d-body one rej"><div class="col"><p class="ihint" style="margin:0 0 4px">Flagged for a second look</p><p style="margin:0 0 4px;font-size:16px;font-weight:600;color:var(--foreground)">${esc(x.flag.t)}</p><p style="margin:0;font-size:14px;line-height:1.5;color:var(--muted-fg)">${esc(x.flag.why.split('. ').slice(1).join('. '))}</p><label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;margin-top:18px;padding-top:16px;border-top:1px solid var(--border,#ececf1)"><input type="checkbox" id="noflag" ${noFlag?'checked':''} onchange="noFlag=this.checked" style="margin:0;width:16px;height:16px;accent-color:var(--primary)"><span>Don’t flag similar approvals again</span></label></div></div>
   <div class="d-foot"><div class="acts"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn pri" onclick="looksFine(${x.id})">Confirm approval</button></div></div></div></div>`;
- if(mode=='approve')return `<div class="scrim" onclick="closeModal()"><div class="dialog narrow" role="dialog" aria-modal="true" aria-label="Approve exception" onclick="event.stopPropagation()">${head}
+ if(mode=='approve')return `<div class="scrim${sp}" onclick="closeModal()"><div class="dialog narrow${sp}" role="dialog" aria-modal="true" aria-label="Approve exception" onclick="event.stopPropagation()">${head}
   <div class="d-body one rej"><div class="col"><p class="label" style="margin:0">${APV[x.tag]}</p><button class="lnk" style="align-self:flex-start;margin-top:6px" onclick="openModal(${x.id})">Request details</button></div></div>
   <div class="d-foot"><div class="acts"><button class="btn ghost" onclick="cancelReject()">Cancel</button><button class="btn pri" onclick="confirmApprove()">Approve exception</button></div></div></div></div>`;
- if(mode=='reject')return `<div class="scrim" onclick="closeModal()"><div class="dialog narrow" role="dialog" aria-modal="true" aria-label="Reject request" onclick="event.stopPropagation()">${head}
+ if(mode=='reject')return `<div class="scrim${sp}" onclick="closeModal()"><div class="dialog narrow${sp}" role="dialog" aria-modal="true" aria-label="Reject request" onclick="event.stopPropagation()">${head}
   <div class="d-body one rej"><div class="col"><label class="label" for="rej">Reason for rejecting</label><textarea id="rej" class="${rejErr?'bad':''}" aria-invalid="${rejErr}" aria-describedby="rejmsg" oninput="rejText=this.value;if(rejErr&&this.value.trim()){rejErr=false;this.classList.remove('bad');const m=$('#rejmsg');m.className='ihint';m.textContent='${first(x)} will see this. Edit it if you want to say more.'}">${esc(rejText)}</textarea><p id="rejmsg" class="${rejErr?'ferr':'ihint'}" ${rejErr?'role="alert"':''}>${rejErr?`${ic('alert')}<span>A reason is required to reject a request.</span>`:`${first(x)} will see this. Edit it if you want to say more.`}</p></div></div>
   <div class="d-foot"><div class="acts"><button class="btn ghost" onclick="cancelReject()">Cancel</button><button class="btn danger" onclick="confirmReject()">Reject and notify ${first(x)}</button></div></div></div></div>`;
  const wait=x.st=='wait';if(wait&&!x.steps){x.steps=[S('stop','Agent check',x.miss+'. The agent asked '+first(x)+' to add it.')];x.rcNote=x.rcNote||'No receipt on file yet'}
@@ -609,10 +638,10 @@ function modalHtml(){const x=I.find(v=>v.id==modal);if(!x)return '';
   <div class="col">${tagHtml}${box}</div></div>`;
  const detTab=`<div class="d-body details"><dl class="dl">${det.map(d=>`<dt>${d[0]}</dt><dd>${d[1]}</dd>`).join('')}</dl>
   <div class="rcwrap">${x.rc&&rcFail[x.id]?`<div class="rcerr" role="alert">${ic('alert')}<b>Couldn't load the receipt</b><span>Check your connection and try again.</span><button class="btn sm" onclick="delete rcFail[${x.id}];draw()">Try again</button></div>`:receipt(x)}${x.rc&&!rcFail[x.id]?`<button class="zoom" title="Enlarge receipt" aria-label="Enlarge receipt" onclick="zoom=true;draw()">${ic('zoomin')}</button>`:''}</div></div>`;
- return `<div class="scrim" onclick="closeModal()"><div class="dialog" role="dialog" aria-modal="true" aria-label="${x.n}, ${x.what}" onclick="event.stopPropagation()">${head}
+ return `<div class="scrim${sp}" onclick="closeModal()"><div class="dialog${sp}" role="dialog" aria-modal="true" aria-label="${x.n}, ${x.what}" onclick="event.stopPropagation()">${head}
   <div class="mtabs" role="tablist"><button class="mtab ${mtab=='agent'?'on':''}" role="tab" aria-selected="${mtab=='agent'}" onclick="mtab='agent';draw()">Agent review</button><button class="mtab ${mtab=='details'?'on':''}" role="tab" aria-selected="${mtab=='details'}" onclick="mtab='details';draw()">Request details</button></div>
   <div class="panes"><div class="pane ${mtab=='agent'?'':'off'}">${agentTab}</div><div class="pane abs ${mtab=='details'?'':'off'}">${detTab}</div></div>
-  ${foot?`<div class="d-foot">${foot}</div>`:''}</div>
+  ${foot||pnav?`<div class="d-foot fbar">${pnav}<div class="fr">${foot}</div></div>`:''}</div>
   ${zoom&&x.rc?`<div class="lightbox" onclick="event.stopPropagation();zoom=false;draw()"><button class="x" aria-label="Close">${ic('x')}</button>${receipt(x)}</div>`:''}</div>`}
 
 function draw(){const F=flagged().length;
@@ -620,7 +649,7 @@ function draw(){const F=flagged().length;
  $('#tabs').innerHTML=T.map(t=>`<button class="tab ${tab==t[0]?'on':''}" role="tab" aria-selected="${tab==t[0]}" onclick="tab='${t[0]}';draw()">${t[1]}${t[0]=='hist'?'':` (${cnt(t[0])+(t[0]=='auto'?by('wait').length:0)})`}${t[2]}</button>`).join('');
  $('#panel').innerHTML={need:needTab,auto:autoTab,hist:histTab}[tab]();
  const keep=document.activeElement&&document.activeElement.id=='note';
- $('#modal').innerHTML=modal==null?'':modalHtml();if(fresh&&$('.dialog'))$('.dialog').classList.add('in');fresh=false;document.body.style.overflow=modal==null?'':'hidden';
+ $('#modal').innerHTML=modal==null?'':modalHtml();if(fresh&&$('.dialog'))$('.dialog').classList.add('in');fresh=false;if(swap&&$('.dialog'))$('.dialog').classList.add('sw');swap=false;document.body.style.overflow=modal==null?'':'hidden';
  if(keep&&$('#note')){const n=$('#note');n.focus();n.selectionStart=n.value.length}}
 document.addEventListener('click',e=>{if((hCatOpen||hMonOpen||fStOpen)&&!e.target.closest('.msel')){hCatOpen=hMonOpen=fStOpen=false;draw()}});
 document.addEventListener('keydown',e=>{if(e.key=='Escape'&&(hCatOpen||hMonOpen||fStOpen)&&modal==null){hCatOpen=hMonOpen=fStOpen=false;draw();return}if(e.key!='Escape'||modal==null)return;if(zoom){zoom=false;draw()}else closeModal()});
