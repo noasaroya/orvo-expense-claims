@@ -64,7 +64,7 @@ h1{font-size:26px;line-height:36px;font-weight:700;letter-spacing:-.02em;margin:
 .tbl th.th-act{text-align:left}
 .tbl .acts{justify-content:flex-start}
 .tbl th:first-child,.tbl td:first-child{padding-left:24px}.tbl th:last-child,.tbl td:last-child{padding-right:24px}
-.tbl tr.row{cursor:pointer}.tbl tr.row:hover td{background:#faf9ff}
+.tbl tr.row{cursor:pointer}.tbl tr.row:hover td{background:#fafafb}
 .who{display:flex;align-items:center;gap:10px;font-weight:500;white-space:nowrap}
 .av{width:36px;height:36px;border-radius:50%;flex:none;object-fit:cover;background:var(--muted);display:block}
 .sub{color:var(--muted-fg)}
@@ -631,7 +631,7 @@ function histTab(){
  :NOMATCH}</div>`}
 
 function modalHtml(){const x=I.find(v=>v.id==modal);if(!x)return '';
- if((mode=='reject'||mode=='reverse')&&inPanel){const m=mode;mode='view';const base=modalHtml();mode=m;inPanel=false;const top=modalHtml().replace('class="scrim"','class="scrim" style="z-index:30"').replaceAll('onclick="closeModal()"',m=='reject'?'onclick="cancelReject()"':'onclick="backToPanel()"').replace('class="dialog narrow"','class="dialog narrow'+((m=='reject'?!rejErr:rev==null&&fresh2)?' in':'')+'"');inPanel=true;fresh2=false;return base+top}
+ if((mode=='reject'||mode=='reverse'||mode=='approve')&&inPanel){const m=mode;mode='view';const base=modalHtml();mode=m;inPanel=false;const top=modalHtml().replace('class="scrim"','class="scrim" style="z-index:30"').replaceAll('onclick="closeModal()"',m=='reverse'?'onclick="backToPanel()"':'onclick="cancelReject()"').replace('class="dialog narrow"','class="dialog narrow'+((m=='reject'?!rejErr:m=='approve'?true:rev==null&&fresh2)?' in':'')+'"');inPanel=true;fresh2=false;return base+top}
  const sp=inPanel||mode=='view'?' sp':'',ids=mode=='view'?listIds():[],pi=ids.indexOf(x.id);
  const pnav=pi>=0&&ids.length>1?`<div class="pnav"><button class="pb" ${pi==0?'disabled':''} onclick="go(-1)" title="Previous request" aria-label="Previous request">${ic('prev')}</button><button class="pb" ${pi==ids.length-1?'disabled':''} onclick="go(1)" title="Next request" aria-label="Next request">${ic('next')}</button><span class="sub">${pi+1} of ${ids.length}</span></div>`:'';
  const head=`<button class="x" aria-label="Close" onclick="closeModal()">${ic('x')}</button><div class="d-head">${av(x)}<div><h2>${x.n}</h2><p class="d-cat">${ic(CAT[x.cat]||'receipt')}${x.cat}</p></div><div class="d-amt"><b>${money(x.amt)}</b><span class="sub">Submitted ${x.date?x.date+', 26':ago(x).toLowerCase()}</span></div></div>`;
@@ -644,7 +644,7 @@ function modalHtml(){const x=I.find(v=>v.id==modal);if(!x)return '';
   <div class="d-foot"><div class="acts"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn pri" onclick="looksFine(${x.id})">Confirm approval</button></div></div></div></div>`;
  if(mode=='approve')return `<div class="scrim${sp}" onclick="closeModal()"><div class="dialog narrow${sp}" role="dialog" aria-modal="true" aria-label="Approve exception" onclick="event.stopPropagation()">${head}
   <div class="d-body one rej"><div class="col"><p class="label" style="margin:0">${APV[x.tag]}</p></div></div>
-  <div class="d-foot fbar"><button class="btn pri" onclick="confirmApprove()">Approve exception</button><button class="lnk" style="margin-left:4px" onclick="openModal(${x.id})">View details</button><button class="lnk cancel" onclick="cancelReject()">Cancel</button></div></div></div>`;
+  <div class="d-foot fbar"><button class="btn pri" onclick="confirmApprove()">Approve exception</button>${rejFrom=='modal'?'':`<button class="lnk" style="margin-left:4px" onclick="openModal(${x.id})">View details</button>`}<button class="lnk cancel" onclick="cancelReject()">Cancel</button></div></div></div>`;
  if(mode=='reject')return `<div class="scrim${sp}" onclick="closeModal()"><div class="dialog narrow${sp}" role="dialog" aria-modal="true" aria-label="Reject request" onclick="event.stopPropagation()">${head}
   <div class="d-body one rej"><div class="col"><label class="label" for="rej">Reason for rejecting</label><textarea id="rej" class="${rejErr?'bad':''}" aria-invalid="${rejErr}" aria-describedby="rejmsg" oninput="rejText=this.value;if(rejErr&&this.value.trim()){rejErr=false;this.classList.remove('bad');const m=$('#rejmsg');m.className='ihint';m.textContent='${first(x)} will see this. Edit it if you want to say more.'}">${esc(rejText)}</textarea><p id="rejmsg" class="${rejErr?'ferr':'ihint'}" ${rejErr?'role="alert"':''}>${rejErr?`${ic('alert')}<span>A reason is required to reject a request.</span>`:`${first(x)} will see this. Edit it if you want to say more.`}</p></div></div>
   <div class="d-foot fbar"><button class="btn danger" onclick="confirmReject()">Reject and notify ${first(x)}</button>${rejFrom=='modal'?'':`<button class="lnk" style="margin-left:4px" onclick="openModal(${x.id})">View details</button>`}<button class="lnk cancel" onclick="cancelReject()">Cancel</button></div></div></div>`;
