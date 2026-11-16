@@ -576,11 +576,11 @@ function decide(id,a){const x=I.find(v=>v.id==id);
  okToast(a=='Approve'?(fin?'Request approved and sent to Finance':'Request approved'):`Request rejected. ${first(x)} was notified.`);draw()}
 let noFlag=false;const rcFail={};
 function startConfirm(id){inPanel=inPanel&&modal==id;fresh=modal!=id;modal=id;mode='confirm';noFlag=false;draw()}
-function looksFine(id){const x=I.find(v=>v.id==id),undo=snap(x);const nf=noFlag;x.res='ok';modal=null;mode='view';noFlag=false;inPanel=false;nf?toast('Rule sent to Finance for approval.'):toast('',undo);draw()}
+function looksFine(id){const x=I.find(v=>v.id==id),undo=snap(x);const nf=noFlag;x.res='ok';if(!(inPanel&&modal==id)){modal=null;inPanel=false}mode='view';noFlag=false;okToast(nf?'Approval confirmed. Rule sent to Finance.':'Approval confirmed');draw()}
 let fresh2=false;function backToPanel(){mode='view';draw()}
 function startReverse(id){inPanel=inPanel&&modal==id;fresh2=true;fresh=modal!=id;modal=id;mode='reverse';rev=null;draw()}
-function confirmReverse(){const x=I.find(v=>v.id==modal);if(!rev)return;const undo=snap(x);if(x.st=='hist'||x.st=='done'){x.prevHs=hstat(x);x.prevReason=hreason(x);if(x.st=='done'){x.st='hist';x.date='Nov 12';x.month='2026-11'}x.hs='reversed';x.reason=rev}else{x.res='rev';x.revWhy=rev}modal=null;mode='view';inPanel=false;
- toast(`Approval reversed. ${first(x)} was notified.`,undo);draw()}
+function confirmReverse(){const x=I.find(v=>v.id==modal);if(!rev)return;const undo=snap(x);if(x.st=='hist'||x.st=='done'){x.prevHs=hstat(x);x.prevReason=hreason(x);if(x.st=='done'){x.st='hist';x.date='Nov 12';x.month='2026-11'}x.hs='reversed';x.reason=rev}else{x.res='rev';x.revWhy=rev}if(!inPanel)modal=null;mode='view';
+ okToast(`Approval reversed. ${first(x)} was notified.`);draw()}
 
 function actions(x,btn){return (x.err?`<div class="note-err" role="alert">${ic('alert')}<div><b>Couldn't reach Finance. Nothing was approved.</b>${first(x)}'s request is still waiting for you.</div></div>`:'')+`<div class="acts">${btn?`<button class="btn sm okb" onclick="event.stopPropagation();startApprove(${x.id})">${x.err?'Try again':'Approve'}</button><button class="btn sm nob" onclick="event.stopPropagation();startReject(${x.id})">Reject</button>`:`<button class="alnk ok" onclick="event.stopPropagation();startApprove(${x.id})">${x.err?'Try again':'Approve'}</button><button class="alnk no" onclick="event.stopPropagation();startReject(${x.id})">Reject</button>`}</div>`}
 
